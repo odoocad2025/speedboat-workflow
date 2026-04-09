@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Powered Dev Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #E91E8C;
+    --bg: #0A0A12;
+    --card: #1C1C2E;
+    --card2: #20203A;
+    --text: #F0F0FF;
+    --muted: #7A7A9A;
+    --border: rgba(255,255,255,0.07);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .wrapper {
+    position: relative; z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  header { text-align: center; margin-bottom: 52px; }
+  .eyebrow {
+    font-family: 'Syne', sans-serif; font-size: 11px;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 5vw, 52px); font-weight: 800; line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, #a0a0c0 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  h1 span {
+    background: linear-gradient(135deg, #E91E8C, #00BFFF);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .subtitle { margin-top: 14px; color: var(--muted); font-size: 15px; }
+
+  /* Breadcrumb hint */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--muted);
+    margin-bottom: 20px; padding-left: 2px;
+  }
+  .breadcrumb span { color: var(--text); font-weight: 600; }
+  .breadcrumb .sep { opacity: 0.4; }
+
+  /* Stage Buttons */
+  .stages-row {
+    display: flex; gap: 12px;
+    justify-content: center; flex-wrap: wrap;
+    margin-bottom: 44px;
+  }
+  .stage-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 18px 22px 16px;
+    border-radius: 18px 18px 6px 6px;
+    border: none; cursor: pointer;
+    min-width: 148px;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: var(--color);
+  }
+  .stage-btn::after {
+    content: '';
+    position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 55%; height: 4px;
+    border-radius: 4px 4px 0 0;
+    background: rgba(255,255,255,0.3);
+    transition: width 0.3s;
+  }
+  .stage-btn:hover { transform: translateY(-4px); }
+  .stage-btn.active { transform: translateY(-7px); box-shadow: 0 18px 44px rgba(0,0,0,0.45); }
+  .stage-btn.active::after { width: 88%; background: rgba(255,255,255,0.65); }
+  .stage-icon { font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+  .stage-label {
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+    color: #111; text-align: center; line-height: 1.3;
+  }
+
+  /* Detail panel */
+  .detail-panel { display: none; }
+  .detail-panel.visible { display: block; animation: fadeUp 0.32s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* stage header strip */
+  .stage-header {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .stage-dot {
+    width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
+  }
+  .stage-hname {
+    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+  }
+  .stage-hdesc { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  /* Two-column layout */
+  .cols { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+
+  /* Steps list (left) */
+  .steps-col { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 8px; }
+  .col-label {
+    font-family: 'Syne', sans-serif; font-size: 10px;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 4px; padding-left: 2px;
+  }
+
+  .step-btn {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 13px 15px;
+    display: flex; align-items: flex-start; gap: 11px;
+    cursor: pointer; text-align: left; width: 100%;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  }
+  .step-btn:hover { border-color: rgba(255,255,255,0.13); background: var(--card2); transform: translateX(2px); }
+  .step-btn.active {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, #1C1C2E);
+    transform: translateX(4px);
+  }
+
+  .step-num {
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 800;
+    letter-spacing: 0.1em; color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: 6px; padding: 3px 7px;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .step-btn.active .step-num { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+
+  .step-info { flex: 1; }
+  .step-info strong { display: block; font-size: 14px; color: var(--text); margin-bottom: 2px; }
+  .step-info span { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .step-btn.active .step-info span { color: #A0A0CC; }
+
+  .step-chevron {
+    flex-shrink: 0; color: var(--muted); font-size: 11px;
+    transition: transform 0.2s, color 0.2s; opacity: 0;
+    margin-top: 4px;
+  }
+  .step-btn:hover .step-chevron, .step-btn.active .step-chevron { opacity: 1; }
+  .step-btn.active .step-chevron { color: var(--accent); transform: rotate(90deg); }
+
+  /* Tools panel (right) */
+  .tools-col { min-height: 200px; }
+
+  .tools-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 260px; gap: 12px; color: var(--muted);
+    border: 1px dashed rgba(255,255,255,0.08);
+    border-radius: 16px;
+  }
+  .tools-empty .big { font-size: 40px; }
+  .tools-empty p { font-size: 14px; }
+
+  .tools-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .tools-header-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .tools-header-name {
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+  }
+  .tools-header-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .tools-grid { display: grid; gap: 12px; animation: fadeUp 0.25s ease; }
+
+  .tool-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px;
+    transition: transform 0.18s, border-color 0.2s, box-shadow 0.2s;
+  }
+  .tool-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255,255,255,0.13);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+  }
+
+  .tool-top {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 8px;
+  }
+  .tool-name-row { display: flex; align-items: center; gap: 9px; }
+  .tool-emoji { font-size: 22px; }
+  .tool-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+  .tool-badge {
+    font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .tool-desc { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .tool-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    text-decoration: none;
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    transition: background 0.2s;
+  }
+  .btn-link:hover { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+
+  .btn-prompt {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    background: rgba(255,255,255,0.06); color: #aaa;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: background 0.2s, color 0.2s; cursor: pointer;
+  }
+  .btn-prompt:hover { background: rgba(255,255,255,0.11); color: #fff; }
+
+  .btn-prompt-th {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    background: rgba(255,200,50,0.08); color: #f5c842;
+    border: 1px solid rgba(255,200,50,0.2);
+    transition: background 0.2s, color 0.2s; cursor: pointer;
+  }
+  .btn-prompt-th:hover { background: rgba(255,200,50,0.15); color: #ffe066; }
+
+  /* Lang toggle in modal */
+  .lang-toggle {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 3px;
+    flex-shrink: 0;
+  }
+  .lang-btn {
+    padding: 4px 12px; border-radius: 6px; border: none;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    letter-spacing: 0.05em; transition: background 0.2s, color 0.2s;
+    background: transparent; color: var(--muted);
+  }
+  .lang-btn.active { background: var(--accent); color: #111; }
+
+  .translating {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; height: 80px; color: var(--muted); font-size: 13px;
+  }
+  .spin {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top-color: var(--accent);
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Page empty */
+  .page-empty {
+    text-align: center; padding: 80px 24px; color: var(--muted);
+  }
+  .page-empty .big { font-size: 48px; margin-bottom: 14px; }
+  .page-empty p { font-size: 15px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+    z-index: 200; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 28px;
+    max-width: 620px; width: 100%;
+    max-height: 85vh; display: flex; flex-direction: column;
+    animation: popIn 0.28s cubic-bezier(0.16,1,0.3,1);
+  }
+  @keyframes popIn {
+    from { opacity:0; transform:scale(0.92); }
+    to   { opacity:1; transform:scale(1); }
+  }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px; flex-shrink: 0;
+  }
+  .modal-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; }
+  .modal-close {
+    background: rgba(255,255,255,0.08); border:none; color:#aaa;
+    width:32px; height:32px; border-radius:8px; cursor:pointer;
+    font-size:18px; display:flex; align-items:center; justify-content:center;
+    transition:background 0.2s;
+  }
+  .modal-close:hover { background:rgba(255,255,255,0.15); color:#fff; }
+  .modal-sub { font-size:12px; color:var(--muted); margin-bottom:14px; flex-shrink:0; }
+  .prompt-box {
+    background: #0D0D1A; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 16px;
+    font-family: 'Courier New', monospace; font-size: 13px;
+    line-height: 1.7; color: #C8E6FF;
+    white-space: pre-wrap; overflow-y: auto; flex:1; min-height:0;
+  }
+  .modal-foot { display:flex; gap:10px; margin-top:14px; flex-shrink:0; }
+  .btn-copy-main {
+    flex:1; padding:11px; border-radius:10px; border:none;
+    font-size:13px; font-weight:700; cursor:pointer;
+    background: var(--accent); color:#111;
+    transition: opacity 0.2s;
+  }
+  .btn-copy-main:hover { opacity:0.85; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="eyebrow">Developer Workflow</div>
+    <h1>Build Smarter with <span>AI Tools</span></h1>
+    <p class="subtitle">เลือก Stage → เลือก Step → ดู AI Tools ที่ช่วยได้</p>
+  </header>
+
+  <div class="stages-row" id="stagesRow"></div>
+
+  <div id="detailPanel" class="detail-panel">
+    <div class="stage-header">
+      <div class="stage-dot" id="stageDot"></div>
+      <div>
+        <div class="stage-hname" id="stageHName"></div>
+        <div class="stage-hdesc" id="stageHDesc"></div>
+      </div>
+    </div>
+
+    <div class="cols">
+      <div class="steps-col">
+        <div class="col-label">Steps — กดเพื่อดู AI Tools</div>
+        <div id="stepsList"></div>
+      </div>
+
+      <div class="tools-col" id="toolsCol">
+        <div class="tools-empty">
+          <div class="big">👈</div>
+          <p>กด Step เพื่อดู AI Tools</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pageEmpty" class="page-empty">
+    <div class="big">👆</div>
+    <p>กดเลือก Stage ด้านบนเพื่อเริ่มต้น</p>
+  </div>
+
+</div>
+
+<!-- Prompt Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalBg(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle"></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="lang-toggle">
+          <button class="lang-btn active" id="btnLangEN" onclick="switchLang('en')">EN</button>
+          <button class="lang-btn" id="btnLangTH" onclick="switchLang('th')">🇹🇭 TH</button>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div class="modal-sub" id="modalSub">📋 Prompt Template — copy ไปแปะกับ AI tool ได้เลย</div>
+    <div class="prompt-box" id="promptBox"></div>
+    <div class="modal-foot">
+      <button class="btn-copy-main" id="copyBtn" onclick="copyPrompt()">📋 Copy Prompt</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const stages = [
+  {
+    id:'planning', label:'Planning\nStage', icon:'🗓️', color:'#FFB300',
+    desc:'วางแผนโปรเจกต์ กำหนด scope และ timeline',
+    steps:[
+      {
+        title:'กำหนด Project Scope',
+        detail:'ระบุขอบเขตงาน deliverables สิ่งที่อยู่ใน/นอก scope อย่างชัดเจน',
+        tools:[
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'Brainstorm scope boundary และสร้าง in/out list',
+            url:'https://chat.openai.com',
+            prompt:`You are a project scoping expert. Help me define a clear project scope.
+
+Project Idea: [อธิบาย project]
+Stakeholders: [ผู้มีส่วนได้ส่วนเสีย]
+
+Please provide:
+1. Project Objective (1 sentence)
+2. In-Scope items (what we WILL deliver)
+3. Out-of-Scope items (what we will NOT deliver)
+4. Key Assumptions
+5. Constraints (time / budget / tech)
+6. Dependencies
+
+Format as a Scope Statement document.` },
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'วิเคราะห์ scope creep risks และ sign-off checklist',
+            url:'https://claude.ai',
+            prompt:`Act as a senior business analyst. Review and refine the project scope, then identify scope creep risks.
+
+Initial Scope Draft: [วาง scope draft]
+
+Deliverables:
+1. Polished Scope Statement
+2. Top 5 scope creep risks with prevention strategies
+3. Change request process recommendation
+4. Stakeholder sign-off checklist` }
+        ]
+      },
+      {
+        title:'สร้าง Project Plan',
+        detail:'แบ่ง phase, milestone, timeline และผู้รับผิดชอบ',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง project plan พร้อม milestones และ RACI chart',
+            url:'https://claude.ai',
+            prompt:`You are a project planning expert. Create a detailed project plan.
+
+Project: [ชื่อโปรเจกต์]
+Duration: [ระยะเวลา]
+Team Size: [จำนวนคน + roles]
+Goal: [เป้าหมาย]
+
+Provide:
+1. Phase breakdown with duration
+2. Milestones & Go/No-Go criteria
+3. RACI chart for key activities
+4. Timeline (Gantt-style text)
+5. Buffer/contingency recommendations` },
+          { name:'Notion AI', emoji:'📝', badge:'Productivity', desc:'Generate project wiki structure ใน Notion',
+            url:'https://notion.so',
+            prompt:`Create a Notion project workspace structure for a software project.
+
+Required sections:
+1. 📋 Project Overview (goal, scope, team)
+2. 🗓️ Timeline & Milestones (database)
+3. ✅ Task Tracker (Kanban)
+4. ⚠️ Risk Register
+5. 📁 Doc Hub
+6. 🤝 Meeting Notes template
+7. 📊 Status Dashboard
+
+For each section, list recommended properties/columns and best Notion view type.` }
+        ]
+      },
+      {
+        title:'Risk Assessment',
+        detail:'ระบุความเสี่ยง โอกาสเกิด และ mitigation plan',
+        tools:[
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง Risk Matrix พร้อม mitigation strategies',
+            url:'https://chat.openai.com',
+            prompt:`You are a risk management expert. Create a risk register for this project.
+
+Project Type: [ประเภทโปรเจกต์]
+Tech Stack: [technologies used]
+Team Experience: [junior/mid/senior mix]
+
+For each risk provide:
+- Risk ID & Description
+- Category (Technical / Resource / Schedule / External)
+- Probability (High/Med/Low)
+- Impact (High/Med/Low)
+- Risk Score
+- Mitigation Strategy
+- Contingency Plan
+- Risk Owner
+
+Provide at least 10 risks sorted by Risk Score descending.` }
+        ]
+      },
+      {
+        title:'Resource Planning',
+        detail:'ประเมิน team, budget, tool และ infrastructure ที่ต้องใช้',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'วิเคราะห์ resource gap และ budget estimation',
+            url:'https://claude.ai',
+            prompt:`Act as a resource planning specialist.
+
+Project Scope: [อธิบาย scope]
+Timeline: [duration]
+Available Team: [current team members & skills]
+
+Provide:
+1. Required skills matrix vs available
+2. Skill gap analysis & hiring recommendations
+3. Tool & license requirements with cost
+4. Infrastructure requirements
+5. Budget breakdown template
+6. Capacity planning per sprint/month` }
+        ]
+      },
+      {
+        title:'Kickoff Slide Deck',
+        detail:'จัดทำ slide สำหรับ kickoff meeting ให้ทีมและ stakeholder เห็นภาพรวมและเริ่มต้นร่วมกัน',
+        tools:[
+          { name:'Gamma', emoji:'⚡', badge:'Slide AI', desc:'Generate kickoff deck จาก outline ได้ในไม่กี่นาที พร้อม design สวยงาม',
+            url:'https://gamma.app',
+            prompt:`Create a project kickoff presentation outline for Gamma.
+
+Project: [ชื่อโปรเจกต์]
+Audience: [เช่น Executive Sponsors, Project Team, Business Users]
+Duration: [e.g. 45-minute meeting]
+
+Slide outline:
+
+1. Title Slide — Project name, date, presenter
+2. Agenda — What we'll cover today
+3. Project Background & Why Now — Problem statement, business driver
+4. Project Objectives & Success Metrics — What we're trying to achieve and how we'll measure it
+5. Scope Overview — In scope / Out of scope (visual)
+6. High-Level Timeline — Phases and key milestones (visual roadmap)
+7. Team Structure — Roles, responsibilities, org chart
+8. Ways of Working — Meeting cadence, communication channels, decision process
+9. Key Risks & Mitigation — Top 3-5 risks
+10. What We Need From You — Asks to stakeholders
+11. Q&A + Next Steps
+
+For each slide: suggest the key message (1 sentence), main content points, and recommended visual type (chart / diagram / table / icon grid).` },
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'เขียน content ครบทุก slide พร้อม speaker notes',
+            url:'https://claude.ai',
+            prompt:`Write complete kickoff presentation content with speaker notes.
+
+Project: [ชื่อโปรเจกต์]
+Audience: [เช่น Executive Sponsors, Project Team]
+Tone: [formal / friendly / energizing]
+Duration: [total presentation time]
+
+For each slide provide:
+- Slide Title
+- Headline message (1 punchy sentence — what the audience should remember)
+- Bullet points (max 4, concise)
+- Speaker Notes (what to say, what to emphasize, anticipated questions)
+
+Slides to write:
+1. Project Background & Why Now
+2. Objectives & Success Metrics (with SMART KPIs)
+3. Scope (In / Out / Maybe Later)
+4. Timeline & Milestones
+5. Team Roles & Responsibilities
+6. Governance & Ways of Working
+7. Key Risks
+8. Asks to Stakeholders
+9. Next Steps (first 2 weeks action items)
+
+Keep language clear and free of jargon. Make it energizing for the team.` },
+          { name:'Canva AI', emoji:'🎨', badge:'Design', desc:'ออกแบบ kickoff deck ให้ดูมืออาชีพและตรง brand',
+            url:'https://canva.com',
+            prompt:`Help me design a professional kickoff presentation in Canva.
+
+Brand Colors: [primary color, secondary color]
+Logo: [will upload separately]
+Style: [corporate / modern / minimal / bold]
+Slides needed: ~10-12 slides
+
+Design brief for each slide type:
+1. Title slide — large project name, background image or abstract shape, date
+2. Agenda slide — numbered list with icons per item
+3. Content slides — consistent layout: headline top, content area, optional data visualization
+4. Timeline slide — horizontal roadmap with phases and milestone markers
+5. Team slide — photo grid or avatar icons with name + role
+6. Risk slide — 2x2 matrix or traffic light table
+
+Suggest:
+- Font pairing (heading + body)
+- Color usage guide (primary for headers, accent for highlights)
+- Icon style (outline / filled / emoji)
+- Template search keywords to use in Canva` }
+        ]
+      }
+    ]
+  },
+  {
+    id:'requirements', label:'Requirements\n& Analysis', icon:'🔍', color:'#FF6B3D',
+    desc:'แปลงข้อมูลจาก workshop ให้เป็น requirement ที่นำไป implement ได้ พร้อม fit-gap และคำถามที่ต้อง confirm',
+    steps:[
+      {
+        title:'Requirement Structuring',
+        detail:'แปลง note ดิบเป็น requirement ที่ชัดเจน แยก business rule, exceptions และ expected outcomes',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'แปลง workshop notes เป็น structured requirements พร้อม business rules',
+            url:'https://claude.ai',
+            prompt:`You are a senior business analyst. Convert the following raw workshop notes into structured, implementation-ready requirements.
+
+Workshop Notes / Raw Input:
+[วาง notes จาก workshop หรือ meeting]
+
+Please structure the output as follows:
+
+## Functional Requirements
+For each requirement:
+- REQ-ID: [e.g. REQ-001]
+- Title: [short name]
+- Description: [clear, unambiguous description]
+- Business Rule: [the rule or logic behind it]
+- Expected Outcome: [what should happen when this is fulfilled]
+- Exception/Edge Case: [what happens when it fails or edge conditions]
+- Acceptance Criteria (Given/When/Then format)
+
+## Non-Functional Requirements
+- Performance, Security, Usability, etc.
+
+## Excluded / Out of Scope
+- Items explicitly not in this phase
+
+Flag any ambiguous statements that need clarification from stakeholders.` },
+          { name:'Gemini', emoji:'💎', badge:'Google AI', desc:'สกัด requirements จาก document และ transcript อัตโนมัติ',
+            url:'https://gemini.google.com',
+            prompt:`Analyze the following document/transcript and extract all requirements in a structured format.
+
+Input Content:
+[วาง document, meeting transcript, หรือ email thread]
+
+Extract and categorize:
+1. Explicit Requirements (clearly stated by stakeholders)
+2. Implicit Requirements (inferred from context or business logic)
+3. Constraints (technical, regulatory, time, budget)
+4. Business Rules (conditions and logic that must be enforced)
+5. Data Requirements (inputs, outputs, formats)
+6. Integration Points (systems that need to connect)
+
+For each item: state the source quote, interpreted requirement, and confidence level (High/Med/Low).` },
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'ตรวจสอบ completeness และ consistency ของ requirements',
+            url:'https://chat.openai.com',
+            prompt:`Review the following requirements document for completeness, consistency, and clarity.
+
+Requirements Document:
+[วาง requirements]
+
+Check for:
+1. Ambiguous language (words like "fast", "easy", "flexible" — flag and suggest specific metrics)
+2. Missing acceptance criteria
+3. Conflicting requirements
+4. Untestable requirements
+5. Missing edge cases
+6. Requirements that are too large (should be split)
+7. Missing actor/role definitions
+
+Output: A review table with [REQ-ID | Issue Type | Description | Suggested Fix]` }
+        ]
+      },
+      {
+        title:'Fit-Gap Analysis',
+        detail:'ประเมินว่า requirement ไหน fit standard, workaround ได้, ต้อง custom หรือควร integrate',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'วิเคราะห์ fit-gap และ recommend solution approach ต่อ requirement',
+            url:'https://claude.ai',
+            prompt:`You are an ERP/system implementation consultant. Conduct a Fit-Gap analysis for the following requirements against our standard system capabilities.
+
+System/Platform: [ชื่อ system เช่น SAP, Salesforce, custom platform]
+Requirements List:
+[วาง list of requirements]
+
+For each requirement, classify as:
+- ✅ FIT: Standard functionality covers this requirement fully
+- 🔶 PARTIAL FIT: Covered with minor configuration or workaround
+- ❌ GAP: Not supported — needs custom development or integration
+- 🔄 WORKAROUND: Can be achieved differently, with trade-offs
+
+Output table: [REQ-ID | Requirement | Classification | Standard Coverage | Gap Description | Recommended Solution | Effort Estimate (S/M/L/XL)]
+
+End with: Summary of total Fit % vs Gap % and key risks.` },
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'เปรียบเทียบ custom vs integration vs workaround options',
+            url:'https://chat.openai.com',
+            prompt:`Evaluate the following gaps and recommend the best solution approach for each.
+
+System Context: [ชื่อ system และ tech stack]
+Gap Items:
+[วาง list of gaps from fit-gap analysis]
+
+For each gap, compare these options:
+1. Custom Development — build from scratch
+2. Third-party Integration — use external tool/API
+3. Process Workaround — change the business process to fit the system
+4. Configuration — adjust system settings
+
+Evaluation criteria: Cost | Time | Maintainability | Risk | User Impact
+
+Output: Decision matrix per gap + final recommendation with justification.` },
+          { name:'Miro AI', emoji:'🗺️', badge:'Visual', desc:'สร้าง fit-gap heatmap visual สำหรับ stakeholder review',
+            url:'https://miro.com',
+            prompt:`Create a Fit-Gap heatmap visualization description for Miro.
+
+Requirements by Module:
+[วาง requirements grouped by module/area]
+
+Gap Classifications:
+[วาง fit-gap results]
+
+Design a Miro board with:
+1. Modules as swim lanes (rows)
+2. Requirements as sticky notes color-coded by status:
+   - Green = Fit
+   - Yellow = Partial Fit / Workaround
+   - Red = Gap (Custom needed)
+   - Blue = Integration needed
+3. Effort tags (S/M/L/XL) on each card
+4. Summary legend and totals per module
+
+Describe layout and sticky note content so I can recreate in Miro.` }
+        ]
+      },
+      {
+        title:'Open Questions & Assumptions Log',
+        detail:'รวบรวมสิ่งที่ยังไม่ชัด และสิ่งที่ทีมกำลังสมมติไว้ก่อน เพื่อกัน requirement หล่น',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง Open Questions log และ Assumptions register',
+            url:'https://claude.ai',
+            prompt:`Review the following requirements and identify all open questions and assumptions that need to be resolved before development begins.
+
+Requirements / Context:
+[วาง requirements หรือ workshop notes]
+
+Generate two outputs:
+
+## Open Questions Log
+For each question:
+- Q-ID: [Q-001, Q-002...]
+- Question: [specific question that needs an answer]
+- Impact if Unresolved: [what breaks or is blocked]
+- Owner: [who should answer — BA / PO / Business / Tech]
+- Priority: High / Med / Low
+- Target Resolution Date: [suggest based on urgency]
+
+## Assumptions Register
+For each assumption:
+- A-ID: [A-001, A-002...]
+- Assumption: [what the team is assuming to be true]
+- Risk if Wrong: [consequence if assumption is incorrect]
+- Validation Method: [how to confirm this assumption]
+- Owner: [who owns validating this]
+
+Sort both lists by Priority (High first).` },
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง follow-up email เพื่อ confirm คำถามกับ stakeholder',
+            url:'https://chat.openai.com',
+            prompt:`Draft a professional follow-up email to stakeholders to resolve the following open questions from our requirements workshop.
+
+Stakeholder Name/Role: [ชื่อและตำแหน่ง]
+Project Name: [ชื่อโปรเจกต์]
+Workshop Date: [วันที่]
+
+Open Questions to Resolve:
+[วาง list of open questions]
+
+Email requirements:
+- Professional but concise tone
+- Group questions by topic/module
+- Include deadline for responses
+- Make it easy to reply (numbered list)
+- Add context for each question so stakeholder understands why it matters
+- Thai or English based on: [ระบุภาษา]` }
+        ]
+      },
+      {
+        title:'Prioritization & MVP Scope',
+        detail:'จัดลำดับ requirement และตกลง MVP / phase rollout ให้ชัด',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'จัดลำดับด้วย MoSCoW + กำหนด MVP scope และ phase plan',
+            url:'https://claude.ai',
+            prompt:`You are a product manager. Prioritize the following requirements and define a clear MVP scope and phased rollout plan.
+
+Requirements List:
+[วาง list of requirements with brief descriptions]
+
+Business Constraints:
+- Go-live deadline: [date]
+- Budget: [amount or T-shirt size]
+- Team capacity: [sprints available]
+
+Step 1 — MoSCoW Classification:
+For each requirement: Must Have / Should Have / Could Have / Won't Have (this release)
+Justification for each classification.
+
+Step 2 — MVP Definition:
+List what's IN the MVP (Must Have confirmed to be achievable in time/budget)
+List what's DEFERRED to Phase 2+
+
+Step 3 — Phased Rollout Plan:
+- Phase 1 (MVP): [requirements] — Target: [date]
+- Phase 2: [requirements] — Target: [date]
+- Phase 3: [requirements] — Target: [date]
+
+Step 4 — Dependencies:
+List any requirements that must be done before others.` },
+          { name:'Miro AI', emoji:'🗺️', badge:'Visual', desc:'สร้าง roadmap visual และ phase breakdown board',
+            url:'https://miro.com',
+            prompt:`Create a product roadmap visualization for Miro showing phased requirement delivery.
+
+Requirements by Phase:
+Phase 1 (MVP): [list]
+Phase 2: [list]
+Phase 3: [list]
+
+Design a Miro roadmap board with:
+1. Horizontal timeline (phases as columns)
+2. Requirement cards in each phase (color by module/area)
+3. Dependency arrows between cards
+4. Effort size indicator on each card (S/M/L/XL)
+5. Go-live milestone markers
+6. Traffic light status (Not Started / In Progress / Done)
+
+Describe the layout and card content so I can build it in Miro.` },
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง MVP scope document สำหรับ stakeholder sign-off',
+            url:'https://chat.openai.com',
+            prompt:`Create an MVP Scope Document for stakeholder sign-off.
+
+Project: [ชื่อโปรเจกต์]
+Go-Live Target: [date]
+
+MVP Inclusions:
+[วาง list of MVP requirements]
+
+MVP Exclusions (Deferred):
+[วาง list of deferred items]
+
+Document should include:
+1. Executive Summary (2-3 sentences)
+2. MVP Goals & Success Criteria
+3. In-Scope Requirements table (ID, Title, Priority, Rationale)
+4. Out-of-Scope table (ID, Title, Deferral Reason, Target Phase)
+5. Key Assumptions & Dependencies
+6. Risks of current scope
+7. Sign-off section (Name, Role, Date, Signature line)
+
+Format as a formal document ready to send to business stakeholders.` }
+        ]
+      }
+    ]
+  },
+  {
+    id:'design', label:'Design\n& Build', icon:'🔄', color:'#E91E8C',
+    desc:'ออกแบบและพัฒนาระบบตาม requirements',
+    steps:[
+      {
+        title:'Process & Workflow Mapping',
+        detail:'ออกแบบ To-Be process, approval flow และ handoff ระหว่างทีม/ระบบ',
+        tools:[
+          { name:'Whimsical', emoji:'🌀', badge:'Diagram', desc:'วาด flowchart และ process diagram แบบ visual ร่วมกันแบบ real-time',
+            url:'https://whimsical.com',
+            prompt:`Help me create a detailed process flow for Whimsical with swimlanes.
+
+Process Name: [ชื่อ process เช่น Purchase Order Approval]
+Trigger: [what starts this process]
+End State: [what does done look like]
+Actors/Roles: [list all people or systems involved]
+
+For each step provide:
+1. Step Name
+2. Actor (who does it — person or system)
+3. Action (what they do)
+4. Decision Points (Yes/No gates with conditions)
+5. Output/Artifact produced
+6. Handoff to next actor (how and what is passed)
+7. Exception paths (what happens when it fails)
+
+Also identify:
+- Approval gates (who approves, criteria)
+- System touchpoints (which system is used per step)
+- SLA per step (expected time)
+- Pain points in As-Is to fix in To-Be
+
+Format as a numbered flow I can translate into a Whimsical flowchart with swimlanes.` },
+          { name:'Mermaid', emoji:'🧜', badge:'Diagram-as-Code', desc:'Generate process diagrams เป็น code ที่ version control ได้',
+            url:'https://mermaid.live',
+            prompt:`Generate Mermaid.js diagrams for the following business process.
+
+Process: [ชื่อ process]
+Actors: [list roles/systems]
+Steps: [describe the flow briefly]
+
+Create ALL of the following with valid Mermaid.js syntax:
+
+1. Flowchart (TD) — main process with decision diamonds
+2. Sequence Diagram — interactions between actors/systems
+3. State Diagram — status transitions of the main entity
+
+Make sure each diagram is complete and compilable.` },
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'วิเคราะห์ As-Is และออกแบบ To-Be process พร้อม RACI',
+            url:'https://claude.ai',
+            prompt:`You are a business process consultant. Analyze the current process and design an optimized To-Be version.
+
+As-Is Process:
+[อธิบาย process ปัจจุบัน หรือวาง notes จาก workshop]
+
+Design Goals:
+- [goal 1 เช่น reduce approval time by 50%]
+- [goal 2 เช่น eliminate manual handoffs]
+- [goal 3 เช่น add audit trail]
+
+Provide:
+1. As-Is Analysis: current steps, bottlenecks, pain points
+2. To-Be Design: optimized steps with actor, system, automation opportunities
+3. Exception handling flows
+4. Process Change Impact (steps eliminated/added/modified)
+5. RACI Matrix for To-Be process
+
+Format step-by-step so I can map it to a Whimsical or Mermaid diagram.` }
+        ]
+      },
+      {
+        title:'System Architecture Design',
+        detail:'ออกแบบ high-level architecture, component diagram และ data flow',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'ออกแบบ architecture และ recommend tech stack',
+            url:'https://claude.ai',
+            prompt:`You are a software architect. Design a system architecture.
+
+Requirements:
+- Type: [web app / mobile / API]
+- Scale: [expected users & requests/sec]
+- Key Features: [list features]
+- Constraints: [budget, expertise, timeline]
+
+Provide:
+1. Architecture pattern recommendation with justification
+2. Component diagram (ASCII format)
+3. Tech stack recommendation with reasoning
+4. Data flow description
+5. Scalability considerations
+6. Security architecture notes
+7. Estimated infrastructure cost` },
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'Generate Mermaid.js architecture diagrams',
+            url:'https://chat.openai.com',
+            prompt:`Generate Mermaid.js diagrams for this system.
+
+System: [อธิบาย system]
+Components: [list components]
+Data Flow: [describe flow]
+
+Create valid Mermaid.js syntax for:
+1. C4 Context Diagram
+2. C4 Container Diagram
+3. Sequence Diagram for main user flow` }
+        ]
+      },
+      {
+        title:'Database Design',
+        detail:'สร้าง ER diagram, schema และ index strategy',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'ออกแบบ schema, indexes และ SQL CREATE statements',
+            url:'https://claude.ai',
+            prompt:`Design a production-ready database schema.
+
+Application: [อธิบาย app]
+Key Entities: [e.g. User, Order, Product]
+Expected Volume: [estimated rows per table]
+Query Patterns: [most common queries]
+
+Provide:
+1. ER diagram description
+2. Table definitions (columns, types, constraints)
+3. Primary/Foreign key relationships
+4. Index recommendations with justification
+5. Normalization level (1NF-3NF)
+6. PostgreSQL CREATE TABLE statements
+7. Sample seed data` }
+        ]
+      },
+      {
+        title:'UI/UX Design',
+        detail:'สร้าง wireframe, prototype และ design system',
+        tools:[
+          { name:'v0 by Vercel', emoji:'🎨', badge:'UI Gen', desc:'Generate React UI components จาก text description',
+            url:'https://v0.dev',
+            prompt:`Create a [component name] React component:
+
+Style: [modern/minimal/corporate/playful]
+Colors: [primary, accent, background]
+
+Requirements:
+- [feature 1]
+- [feature 2]
+- [feature 3]
+
+Must include:
+✓ TypeScript interfaces
+✓ Tailwind CSS
+✓ Loading & error states
+✓ Mobile responsive
+✓ ARIA accessibility
+✓ Smooth animations` },
+          { name:'Figma AI', emoji:'🖼️', badge:'Design', desc:'สร้าง wireframe spec ให้ designer นำไปทำต่อ',
+            url:'https://figma.com',
+            prompt:`Create a detailed wireframe specification for this screen.
+
+Screen: [ชื่อ screen]
+User Goal: [สิ่งที่ user ต้องการทำ]
+Key Actions: [primary and secondary actions]
+
+Describe:
+1. Header/Navigation elements
+2. Main content layout
+3. Key UI components
+4. CTA placement and hierarchy
+5. Empty state design
+6. Mobile vs Desktop differences
+7. Interaction states (hover, active, disabled, loading)` }
+        ]
+      },
+      {
+        title:'Code Implementation',
+        detail:'พัฒนา feature ตาม design โดยใช้ best practices',
+        tools:[
+          { name:'Cursor AI', emoji:'⚡', badge:'IDE', desc:'AI IDE ที่เข้าใจ codebase ทั้งหมด',
+            url:'https://cursor.sh',
+            prompt:`@codebase Implement [feature name] following existing patterns.
+
+Requirements:
+- Feature: [describe]
+- Integrates with: [components/services]
+- Tech stack: [languages/frameworks]
+
+Steps:
+1. Analyze existing structure
+2. Generate implementation with error handling
+3. Update types/interfaces
+4. List files to modify
+5. Suggest unit tests` },
+          { name:'GitHub Copilot', emoji:'🐙', badge:'Coding', desc:'AI pair programmer inline',
+            url:'https://github.com/features/copilot',
+            prompt:`// Function: [name]
+// Purpose: [what it does]
+// Input: [param]: [type] — [description]
+// Output: [return type] — [description]
+// Requirements:
+//   - [requirement 1]
+//   - [requirement 2]
+// Handle edge cases: [null / empty / error]
+// Include: error handling, input validation, JSDoc
+// Pattern: [existing pattern in codebase]` },
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'Code review เชิงลึก ด้าน security และ performance',
+            url:'https://claude.ai',
+            prompt:`Review this code thoroughly:
+
+\`\`\`[language]
+[วาง code ที่นี่]
+\`\`\`
+
+Analyze for:
+1. 🐛 Bugs & logical errors
+2. 🔒 Security vulnerabilities
+3. ⚡ Performance bottlenecks
+4. 🏗️ SOLID principles
+5. 🧪 Testability & test suggestions
+6. 📖 Readability issues
+7. 🔄 Unhandled edge cases
+
+Each issue: Severity + explanation + code fix example.` },
+          { name:'Replit', emoji:'🔁', badge:'Cloud IDE', desc:'Build และ run code ในทันทีบน browser ไม่ต้องตั้งค่า local',
+            url:'https://replit.com',
+            prompt:`I want to build [project/feature name] on Replit. Help me set up and implement it.
+
+Project Details:
+- Type: [web app / API / script / prototype]
+- Language: [Python / Node.js / etc.]
+- Framework: [Flask / Express / React / etc.]
+- Description: [what it does]
+
+Please provide:
+1. Replit project setup instructions
+   - Which Replit template to start with
+   - Required packages to add (requirements.txt or package.json)
+   - Environment variables / Secrets to configure
+
+2. Core implementation code (ready to paste and run):
+   - Main entry file
+   - Key modules/functions
+   - Any config files needed
+
+3. How to test it runs correctly on Replit
+
+4. Tips for sharing or deploying from Replit (Replit Deployments / public URL)` }
+        ]
+      }
+    ]
+  },
+  {
+    id:'testing', label:'Testing &\nConversion', icon:'🧪', color:'#9B59B6',
+    desc:'ทดสอบระบบ ฝึกอบรมผู้ใช้ และ convert ข้อมูลก่อน go-live',
+    steps:[
+      {
+        title:'Unit Testing',
+        detail:'เขียน test สำหรับ individual function/component ให้ครอบคลุม happy path และ edge cases',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'Generate unit tests ครอบคลุม >90% branch coverage',
+            url:'https://claude.ai',
+            prompt:`Write comprehensive unit tests for the following code.
+
+\`\`\`[language]
+[วาง function/class]
+\`\`\`
+
+Framework: [Jest/Vitest/Pytest/etc.]
+
+Cover:
+1. Happy path (normal expected inputs)
+2. Edge cases (empty, null, zero, max values)
+3. Error cases (invalid inputs, exceptions)
+4. Boundary values
+5. Mocked external dependencies
+
+Target: >90% branch coverage. Include comments explaining WHY each test exists.` },
+          { name:'GitHub Copilot', emoji:'🐙', badge:'Coding', desc:'Generate tests ตรงใน IDE ด้วย inline prompt',
+            url:'https://github.com/features/copilot',
+            prompt:`// Generate unit tests for the function above
+// Framework: [Jest/Vitest/Pytest]
+// Cover: happy path, null inputs, edge cases, error throwing
+// Mock: [list dependencies to mock]
+// Target: 90%+ branch coverage
+// Include: beforeEach setup, afterEach cleanup, descriptive test names` },
+          { name:'Cursor AI', emoji:'⚡', badge:'IDE', desc:'Generate และ run unit tests ใน AI IDE',
+            url:'https://cursor.sh',
+            prompt:`@codebase Generate comprehensive unit tests for [module/function name].
+
+Requirements:
+- Auto-detect testing framework already used in project
+- Follow existing test file naming convention
+- Cover all exported functions and edge cases
+- Mock all external dependencies (DB, API, filesystem)
+- Add test data factories if needed
+
+Run the tests and fix any failures. Report final coverage percentage.` }
+        ]
+      },
+      {
+        title:'SIT (System Integration Testing)',
+        detail:'ทดสอบ Integration, E2E flows และ Performance ให้ครอบคลุมก่อนส่ง UAT',
+        tools:[
+          { name:'Playwright', emoji:'🎭', badge:'E2E', desc:'Generate E2E test scripts ครอบคลุม critical user flows',
+            url:'https://playwright.dev',
+            prompt:`Generate Playwright TypeScript E2E tests for SIT phase.
+
+Application URL: [URL]
+Critical User Flows to Test:
+1. [flow 1 เช่น Login → Create Order → Approve]
+2. [flow 2 เช่น Search → View Detail → Export]
+3. [flow 3]
+
+For each flow:
+- Use data-testid selectors
+- Assert at every critical step
+- Handle loading/async states
+- Capture screenshot on failure
+- Use Page Object Model pattern
+- Include test data setup via API (not UI)
+
+Also generate:
+- Smoke test suite (top 5 must-pass scenarios)
+- Regression test suite tags
+- CI/CD integration config (run on every deploy)` },
+          { name:'Postman', emoji:'📮', badge:'API Testing', desc:'สร้าง integration test collection สำหรับ API flows',
+            url:'https://postman.com',
+            prompt:`Create a Postman collection for API integration testing.
+
+API Base URL: [URL]
+Auth Method: [Bearer token / API Key / OAuth]
+
+Test the following integration scenarios:
+1. [scenario 1 เช่น Create resource → Read back → Verify data]
+2. [scenario 2 เช่น Trigger webhook → Verify downstream system]
+3. [scenario 3 เช่น Error handling — invalid input → correct error response]
+
+For each request include:
+- Pre-request script (set variables, auth)
+- Test assertions (status, schema, response time, business logic)
+- Chain tests using environment variables
+
+Also include:
+- Performance threshold tests (response < [X]ms)
+- Negative test cases (401, 404, 400, 500)
+- Collection runner config for CI/CD` },
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง SIT test plan และ defect tracking template',
+            url:'https://claude.ai',
+            prompt:`Create a comprehensive SIT (System Integration Testing) plan.
+
+System Overview: [อธิบาย system และ integrations]
+Integration Points: [list all system-to-system connections]
+SIT Environment: [describe test environment setup]
+Team: [testers, developers, DevOps]
+
+Provide:
+1. SIT Scope — what is and isn't tested
+2. Integration test scenarios by interface/API
+3. E2E business flow test cases (happy + negative paths)
+4. Performance test scenarios with SLA thresholds
+5. Test data requirements and setup guide
+6. Entry/Exit criteria for SIT phase
+7. Defect severity classification guide
+8. Defect report template
+9. SIT sign-off checklist` },
+          { name:'k6', emoji:'⚡', badge:'Performance', desc:'Load test scripts พร้อม SLA thresholds',
+            url:'https://k6.io',
+            prompt:`Create a k6 performance test script for SIT phase.
+
+Target endpoints:
+- [endpoint 1]: [description]
+- [endpoint 2]: [description]
+
+SLA Requirements:
+- P95 Response Time: < [X]ms
+- P99 Response Time: < [X]ms
+- Throughput: [X] requests/sec
+- Error Rate: < [X]%
+
+Test stages:
+1. Ramp-up: 0 → [peak] users over [X] minutes
+2. Sustained load: [peak] users for [X] minutes
+3. Spike test: sudden 2x load for 2 minutes
+4. Ramp-down: back to 0
+
+Include: custom thresholds, response validation, business metric tracking, HTML result summary.` }
+        ]
+      },
+      {
+        title:'UAT (User Acceptance Testing)',
+        detail:'ให้ business users ทดสอบ real scenarios และ sign-off ก่อน go-live',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง UAT scripts ภาษาธรรมดาสำหรับ business users',
+            url:'https://claude.ai',
+            prompt:`Create a complete UAT (User Acceptance Testing) package for business users.
+
+Features in Scope: [list features]
+User Roles Involved: [list roles e.g. Finance Manager, Sales Rep]
+Go-Live Date: [date]
+UAT Window: [start date → end date]
+
+Deliverables:
+1. UAT Test Scripts (plain language, no technical jargon)
+   - Each script: Scenario title, preconditions, numbered steps, expected result
+   - Include: happy path + common error scenarios
+
+2. Test Data Preparation Guide
+   - What data to set up before testing
+   - Sample data values to use
+
+3. Bug Report Template
+   - Fields: scenario ID, steps to reproduce, expected vs actual, screenshot slot, severity
+
+4. UAT Tracking Sheet structure
+   - Columns: Scenario ID | Tester | Date | Status (Pass/Fail/Blocked) | Comments
+
+5. Go/No-Go Decision Checklist
+   - Criteria that must be met before sign-off
+
+6. Sign-Off Document Template` },
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง UAT communication plan และ stakeholder emails',
+            url:'https://chat.openai.com',
+            prompt:`Draft all communication needed for the UAT phase.
+
+Project: [ชื่อโปรเจกต์]
+UAT Start: [date]
+UAT End: [date]
+Go-Live: [date]
+Participants: [list roles and names]
+
+Draft the following emails/messages:
+1. UAT Kick-off Invitation (include schedule, access info, objectives)
+2. Daily UAT Status Update template
+3. Defect escalation notification (when critical bug found)
+4. UAT Completion & Sign-off Request
+5. Go-Live Announcement (for after successful UAT)
+
+Tone: professional but friendly. Include placeholders for dynamic content.` }
+        ]
+      },
+      {
+        title:'Training',
+        detail:'ฝึกอบรม end users และ support team ให้พร้อมใช้งานระบบจริง',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง training plan, curriculum และ user manual',
+            url:'https://claude.ai',
+            prompt:`Create a comprehensive training program for system rollout.
+
+System: [ชื่อระบบ]
+Go-Live Date: [date]
+User Groups:
+- [Group 1 เช่น End Users — 50 people]
+- [Group 2 เช่น Supervisors — 10 people]
+- [Group 3 เช่น IT Support — 5 people]
+
+Provide:
+1. Training Strategy (in-person / online / self-paced / blended)
+
+2. Training Curriculum per user group:
+   - Module name
+   - Duration
+   - Topics covered
+   - Hands-on exercises
+   - Assessment method
+
+3. Training Schedule (timeline to complete before go-live)
+
+4. User Manual outline (chapters and key content per chapter)
+
+5. Quick Reference Card content (1-page cheat sheet per role)
+
+6. Train-the-Trainer guide (for internal trainers)
+
+7. Training Completion Checklist (readiness criteria before go-live)` },
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง FAQ และ troubleshooting guide สำหรับ users',
+            url:'https://chat.openai.com',
+            prompt:`Create end-user support materials for [system name].
+
+Target Users: [describe user type and technical level]
+Key Processes in System: [list main things users will do]
+
+Generate:
+1. Top 20 FAQs with clear answers (anticipate common confusion points)
+
+2. Troubleshooting Guide:
+   - Common error messages → what they mean → how to fix
+   - Who to contact if self-service fails
+
+3. Step-by-step How-To Guides for top 5 tasks:
+   - Each in simple numbered steps
+   - Include what to do if something goes wrong
+
+4. Glossary of system-specific terms
+
+Write at reading level appropriate for non-technical business users. Use simple, clear language.` },
+          { name:'Notion AI', emoji:'📝', badge:'Productivity', desc:'สร้าง training knowledge base structure ใน Notion',
+            url:'https://notion.so',
+            prompt:`Design a Notion knowledge base structure for system training and ongoing user support.
+
+System: [ชื่อระบบ]
+User Groups: [list]
+
+Structure the Notion space with:
+1. 🏠 Home Dashboard (quick links, announcements, go-live countdown)
+2. 📚 Training Materials (by role/module)
+3. 📖 User Manuals (searchable, with table of contents)
+4. ❓ FAQ (filterable by topic)
+5. 🐛 Known Issues & Workarounds (status tracker)
+6. 🎫 How to Get Help (support contacts, ticket process)
+7. 📣 Release Notes (version history)
+
+For each section: recommend page structure, properties, and view types.` }
+        ]
+      },
+      {
+        title:'Data Conversion & Migration',
+        detail:'แปลง ทำความสะอาด และ migrate ข้อมูลจาก legacy system เข้า new system',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง data migration plan และ validation strategy',
+            url:'https://claude.ai',
+            prompt:`Create a comprehensive data conversion and migration plan.
+
+Source System: [ชื่อ legacy system]
+Target System: [ชื่อ new system]
+Data Scope: [list data entities to migrate e.g. Customers, Orders, Products]
+Estimated Volume: [rows per entity]
+Migration Window: [available downtime or zero-downtime requirement]
+
+Provide:
+1. Data Inventory & Mapping
+   - Source field → Target field mapping per entity
+   - Data type conversions needed
+   - Default values for new required fields
+
+2. Data Quality Assessment Checklist
+   - Completeness checks
+   - Duplicate detection approach
+   - Format standardization rules
+
+3. Migration Approach
+   - Big bang vs phased vs parallel run recommendation
+   - ETL process steps (Extract → Transform → Load)
+
+4. Validation Plan
+   - Record count reconciliation
+   - Sample data spot-check method
+   - Business rule validation queries
+   - Rollback trigger criteria
+
+5. Migration Runbook (step-by-step execution plan)
+
+6. Post-migration sign-off checklist` },
+          { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง data mapping template และ transformation rules',
+            url:'https://chat.openai.com',
+            prompt:`Help me create data mapping and transformation rules for migration.
+
+Source: [legacy system / file format e.g. CSV, Oracle DB]
+Target: [new system / database]
+
+Source Data Sample:
+[วาง sample data or field list]
+
+Target Schema:
+[วาง target table/field definitions]
+
+For each field provide:
+1. Source field name & type
+2. Target field name & type
+3. Transformation rule (direct map / concatenate / split / lookup / calculate / default)
+4. Example: source value → transformed value
+5. Handling null/empty source values
+6. Data validation rule (regex, range, allowed values)
+
+Flag any fields that cannot be automatically mapped and need manual review.` }
+        ]
+      },
+    ]
+  },
+  {
+    id:'deploy', label:'Go-Live &\nPost Support', icon:'🚀', color:'#00BFFF',
+    desc:'วางแผน cutover, ตรวจความพร้อม, go-live และ support ระบบหลัง launch',
+    steps:[
+      {
+        title:'Cutover Planning',
+        detail:'วางแผน cutover window, owner ของแต่ละ task, dependencies และ rollback decisions',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง cutover plan พร้อม owner, dependencies และ fallback decisions',
+            url:'https://claude.ai',
+            prompt:`Create a detailed minute-by-minute cutover plan for go-live.
+
+System: [ชื่อระบบ]
+Go-Live Date & Time: [date and time]
+Cutover Window: [e.g. Friday 10PM — Saturday 6AM]
+Rollback Deadline: [last possible time to abort]
+Team Members: [list name and role]
+
+Deliverables:
+
+1. Cutover Runbook (T-minus timeline table)
+   Columns: Time | Task | Owner | Duration | Depends On | Status | Notes
+   Cover: pre-cutover freeze → data migration → system switch → smoke test → go/no-go
+
+2. Go/No-Go Decision Checkpoints
+   - Criteria to proceed at each gate
+   - Who has authority to call go or no-go
+
+3. Rollback Plan
+   - Trigger criteria (when to rollback — specific thresholds)
+   - Rollback steps with owner and time estimate per step
+   - Communication script if rollback occurs
+
+4. Communication Plan
+   - Who to notify at each milestone (internal + external)
+   - Status update schedule during cutover night
+   - Escalation contacts
+
+5. Hypercare Schedule (first 48 hours post go-live)
+   - On-call roster with shifts
+   - Issue triage process` },
+          { name:'Notion AI', emoji:'📝', badge:'Workspace', desc:'ทำ cutover checklist page ที่ทุกคนเห็นสถานะเดียวกัน',
+            url:'https://notion.so',
+            prompt:`Create a Notion cutover tracking page that the whole team can use in real-time during go-live night.
+
+Cutover Tasks:
+[วาง list of cutover tasks from the runbook]
+
+Team Members: [list names and roles]
+
+Design a Notion page with:
+1. ✅ Cutover Checklist Database
+   - Properties: Task Name, Owner, Start Time, End Time, Status (Not Started/In Progress/Done/Blocked), Notes
+   - Grouped by Phase (Pre-Cutover / Migration / Switch / Verification / Done)
+   - Checkbox for each item with status auto-update
+
+2. 🔴 Issues Log
+   - Fields: Issue, Severity, Raised By, Time, Resolution, Status
+
+3. 📊 Live Status Banner
+   - Current phase indicator
+   - Go/No-Go decision status
+   - Rollback deadline countdown note
+
+4. 📞 Contact Directory
+   - Role, Name, Phone, Responsibility
+
+Format each section with recommended Notion block types and properties.` }
+        ]
+      },
+      {
+        title:'Readiness Review',
+        detail:'ตรวจสอบความพร้อมทุกมิติก่อน cutover — requirement, data, UAT, training, infra',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง go-live readiness checklist ครอบ requirement/data/UAT/training',
+            url:'https://claude.ai',
+            prompt:`Create a comprehensive Go-Live Readiness Review checklist covering all dimensions.
+
+Project: [ชื่อโปรเจกต์]
+Go-Live Date: [date]
+System Type: [ERP / Web App / Mobile / Integration]
+
+Generate a readiness checklist organized by track:
+
+## 1. Functional Readiness
+- All must-have requirements delivered and tested
+- Outstanding defects status (zero critical/high open)
+- UAT signed off by all stakeholder groups
+- Deferred items documented and accepted
+
+## 2. Data Readiness
+- Data migration completed and validated
+- Record count reconciliation (source vs target)
+- Data quality spot-check passed
+- Master data verified (users, org structure, config)
+
+## 3. Technical & Infrastructure Readiness
+- Production environment provisioned and tested
+- Performance test results meet SLA
+- Security scan completed (no critical findings)
+- Backup and recovery verified
+- SSL, DNS, load balancer configured
+
+## 4. Integration Readiness
+- All external system integrations tested end-to-end
+- API keys and credentials configured in production
+- Error handling and retry logic verified
+
+## 5. Training & User Readiness
+- Training completion rate by role (target %)
+- User accounts created and access verified
+- Quick reference guides distributed
+- Support contacts communicated to users
+
+## 6. Support Readiness
+- Hypercare team rostered and briefed
+- Help desk trained and scripts ready
+- Escalation path defined and tested
+- Monitoring dashboards live
+
+## 7. Communication Readiness
+- Go-live announcement prepared
+- Stakeholder notification list ready
+- Rollback communication template prepared
+
+For each item: Status column (✅ Done / ⚠️ At Risk / ❌ Not Done), Owner, and Notes.` },
+          { name:'Miro', emoji:'🗺️', badge:'Workshop', desc:'ใช้ทำ readiness review board และระดมปัญหาสุดท้ายก่อน cutover',
+            url:'https://miro.com',
+            prompt:`Design a Go-Live Readiness Review workshop board for Miro.
+
+Team: [BA, Dev, QA, DevOps, Business, Support]
+Time Available: [e.g. 2-hour workshop]
+
+Design the board with these sections:
+
+1. 🟢🟡🔴 Readiness Traffic Light
+   - Columns: Track | Owner | Status | Blocker | Action Needed
+   - Tracks: Functional / Data / Technical / Integration / Training / Support
+   - Each team updates their own row live during the meeting
+
+2. 🚨 Open Issues Parking Lot
+   - Sticky notes: Issue | Severity | Owner | Target Resolution Date
+   - Sort by severity (Critical at top)
+
+3. 🤔 Risks & Concerns Wall
+   - Anonymous sticky notes for team to raise concerns
+   - Dot voting to prioritize which to address
+
+4. ✅ Go / 🔄 Delay / ❌ No-Go Vote
+   - Each team lead places a vote card
+   - Space for conditions (go-with-conditions)
+
+5. 📋 Action Items Tracker
+   - Who | What | By When | Done?
+
+Describe layout, sticky note colors, and facilitation flow for the workshop.` }
+        ]
+      },
+      {
+        title:'Go-Live Execution',
+        detail:'ดำเนิน cutover จริง, smoke test, and flip traffic ไป production',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง go-live day playbook และ smoke test checklist',
+            url:'https://claude.ai',
+            prompt:`Create a Go-Live Day execution playbook.
+
+System: [ชื่อระบบ]
+Go-Live Date: [date]
+Key Contacts: [names and roles]
+
+Provide:
+
+1. Go-Live Day Hour-by-Hour Schedule
+   - Pre-opening checks (before users arrive)
+   - User access window opens
+   - First transaction verification
+   - Ongoing monitoring schedule
+
+2. Smoke Test Checklist (run immediately after go-live)
+   - Top 10 critical paths to verify (specific steps + expected result)
+   - Who runs each test
+   - Pass/fail criteria
+   - What to do if a smoke test fails
+
+3. First Hour Monitoring Checklist
+   - System health metrics to watch
+   - Business KPIs to verify (e.g. first order created, first login success rate)
+   - Error rate threshold that triggers escalation
+
+4. User Communication Templates
+   - "System is live" announcement
+   - "We are experiencing issues" holding message
+   - "Issue resolved" update
+
+5. End-of-Day Status Report template for stakeholders` },
+          { name:'Datadog AI', emoji:'📊', badge:'Monitoring', desc:'ตั้งค่า hypercare monitoring dashboard สำหรับ go-live',
+            url:'https://datadoghq.com',
+            prompt:`Create a Go-Live hypercare monitoring setup in Datadog.
+
+Application: [app name]
+Go-Live Date: [date]
+Critical Flows: [e.g. login, create order, payment, report generation]
+SLA: Uptime 99.9%, P95 < [X]ms, Error Rate < [X]%
+
+Provide:
+1. Hypercare Dashboard Layout (first 48 hours)
+   - Real-time error rate widget
+   - P95/P99 latency per endpoint
+   - Active user count
+   - Business transaction counter
+   - Infrastructure health (CPU, memory, DB)
+
+2. Hypercare Alert Rules (more sensitive than steady-state)
+   - Warning: error rate > 0.5% for 2 min
+   - Critical: error rate > 1% for 1 min → page on-call
+   - Latency: P95 > 300ms for 5 min → warning
+
+3. Alert routing (who gets paged at each severity)
+
+4. Steady-state alert thresholds (activate after 2 weeks)
+
+5. Go-Live incident response runbook (top 5 failure scenarios)` }
+        ]
+      },
+      {
+        title:'Hypercare & Post-Launch Support',
+        detail:'สนับสนุน users อย่างเข้มข้นช่วง 2-4 สัปดาห์แรก และ resolve ปัญหาที่เกิดขึ้น',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง hypercare support plan และ issue triage process',
+            url:'https://claude.ai',
+            prompt:`Create a Hypercare Support Plan for the first 4 weeks post go-live.
+
+System: [ชื่อระบบ]
+User Base: [number and type of users]
+Support Team: [members and availability]
+Business Hours: [e.g. Mon-Fri 8AM-6PM]
+
+Provide:
+
+1. Hypercare Phases
+   - Week 1: Intensive (on-site/dedicated support hours)
+   - Week 2: Active (rapid response SLA)
+   - Week 3-4: Transition (normal support handoff)
+
+2. Issue Triage & Escalation Process
+   - Severity classification (Critical / High / Medium / Low) with examples
+   - Response SLA per severity
+   - Escalation path (L1 → L2 → Dev team)
+   - When to invoke rollback vs workaround
+
+3. Daily Hypercare Standup Agenda
+   - Issues raised yesterday
+   - Issues resolved
+   - Issues open + owner + ETA
+   - Risks for today
+
+4. Known Issues & Workaround Log template
+
+5. Hypercare Exit Criteria
+   - Metrics that signal readiness to exit hypercare
+   - Sign-off process` },
+          { name:'Notion AI', emoji:'📝', badge:'Workspace', desc:'สร้าง post-launch issue tracker และ knowledge base',
+            url:'https://notion.so',
+            prompt:`Create a Notion post-launch support hub for the hypercare period.
+
+Project: [ชื่อโปรเจกต์]
+Hypercare Period: [start → end date]
+
+Design the following pages:
+
+1. 🐛 Issue Tracker Database
+   - Properties: Issue ID, Title, Reporter, Date, Severity (Critical/High/Med/Low), Module, Status (New/In Progress/Resolved/Closed), Assignee, Root Cause, Resolution, Workaround Available
+   - Views: Kanban by Status, Table by Severity, Filtered by Module
+
+2. 📖 Workaround Library
+   - Issue description + interim workaround steps (for support team to share with users)
+
+3. 📊 Daily Status Dashboard
+   - Issues opened today / resolved today / total open by severity
+   - Link to monitoring dashboard
+
+4. 📣 User Communication Log
+   - What was communicated, when, to whom, by who
+
+5. 🏁 Hypercare Exit Checklist
+   - Criteria to transition to steady-state support
+
+Recommend Notion database properties, relations, and views for each section.` }
+        ]
+      },
+      {
+        title:'Lessons Learned & Handover',
+        detail:'จัดทำ retrospective, ส่งมอบระบบให้ support team และ document ทุกอย่างสำหรับอนาคต',
+        tools:[
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง project retrospective และ lessons learned document',
+            url:'https://claude.ai',
+            prompt:`Facilitate a project retrospective and create a Lessons Learned document.
+
+Project: [ชื่อโปรเจกต์]
+Duration: [start → end date]
+Team: [list roles]
+
+Generate:
+
+1. Retrospective Workshop Agenda (2-hour session)
+   - Check-in activity
+   - Timeline review (key events, milestones, incidents)
+   - What went well? (celebrate wins)
+   - What could be improved? (honest reflection)
+   - Action items for future projects
+   - Close and appreciation
+
+2. Lessons Learned Document Structure
+   - Project Overview & Outcomes vs Plan
+   - What Went Well (with specific examples)
+   - What Could Be Improved (with root cause and recommendation)
+   - Risks that materialized vs risks that didn't
+   - Recommendations for future similar projects
+   - Team recognition
+
+3. Project Closure Checklist
+   - All deliverables accepted
+   - Documentation handed over
+   - Access revoked / transferred
+   - Support contract / SLA in place
+   - Financial closure
+   - Team offboarded / reassigned
+
+4. Knowledge Transfer Checklist for support team
+   - System architecture overview
+   - Common issues and fixes
+   - Vendor contacts
+   - SLA and escalation procedures` },
+          { name:'Miro', emoji:'🗺️', badge:'Workshop', desc:'Retrospective board สำหรับ team workshop',
+            url:'https://miro.com',
+            prompt:`Design a project retrospective board in Miro for a software go-live project team.
+
+Team Size: [number of people]
+Session Length: [e.g. 90 minutes]
+
+Create a Miro board with these sections:
+
+1. 📅 Project Timeline
+   - Horizontal timeline with sticky notes for key milestones, decisions, and incidents
+   - Color-coded: green = good moment, red = painful moment, blue = pivot/learning
+
+2. 🌟 What Went Well
+   - Sticky notes grouped by theme
+   - Dot voting to highlight top wins
+
+3. 💡 What Could Be Improved
+   - Sticky notes with: What happened → Why → What we'd do differently
+   - Group by theme (Process / Tech / People / Communication)
+
+4. 🎯 Action Items for Next Project
+   - Who | What | Category
+
+5. 🏆 Shoutouts & Recognition
+   - Anonymous appreciation wall for team members
+
+Include facilitation timing and instructions for each section.` }
+        ]
+      }
+    ]
+  }
+];
+
+let activeStageIdx = null;
+let modalPromptText = '';
+let accentColor = '#E91E8C';
+let currentLang = 'en';
+let currentStepIdx = null;
+let currentToolIdx = null;
+const thCache = {};
+
+function init() {
+  const row = document.getElementById('stagesRow');
+  stages.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'stage-btn';
+    btn.style.setProperty('--color', s.color);
+    btn.innerHTML = `<span class="stage-icon">${s.icon}</span><span class="stage-label">${s.label.replace('\n','<br>')}</span>`;
+    btn.onclick = () => selectStage(i, btn);
+    row.appendChild(btn);
+  });
+}
+
+function selectStage(i, btn) {
+  if (activeStageIdx === i) return;
+  activeStageIdx = i;
+
+  document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const s = stages[i];
+  accentColor = s.color;
+  document.documentElement.style.setProperty('--accent', s.color);
+
+  document.getElementById('pageEmpty').style.display = 'none';
+
+  const panel = document.getElementById('detailPanel');
+  panel.classList.remove('visible');
+  void panel.offsetWidth;
+  panel.classList.add('visible');
+
+  document.getElementById('stageDot').style.cssText =
+    `background:${s.color}; box-shadow:0 0 10px ${s.color}`;
+  document.getElementById('stageHName').textContent = s.label.replace('\n',' ');
+  document.getElementById('stageHDesc').textContent = s.desc;
+
+  const list = document.getElementById('stepsList');
+  list.innerHTML = s.steps.map((step, idx) => `
+    <button class="step-btn" id="stepBtn_${idx}" onclick="selectStep(${idx})">
+      <span class="step-num">STEP ${String(idx+1).padStart(2,'0')}</span>
+      <span class="step-info">
+        <strong>${step.title}</strong>
+        <span>${step.detail}</span>
+      </span>
+      <span class="step-chevron">▶</span>
+    </button>
+  `).join('');
+
+  document.getElementById('toolsCol').innerHTML = `
+    <div class="tools-empty">
+      <div class="big">👈</div>
+      <p>กด Step เพื่อดู AI Tools</p>
+    </div>`;
+}
+
+function selectStep(idx) {
+  if (activeStageIdx === null) return;
+
+  document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`stepBtn_${idx}`).classList.add('active');
+
+  const step = stages[activeStageIdx].steps[idx];
+
+  const toolsCol = document.getElementById('toolsCol');
+  toolsCol.innerHTML = `
+    <div class="tools-header">
+      <div class="tools-header-icon">🤖</div>
+      <div>
+        <div class="tools-header-name">${step.title}</div>
+        <div class="tools-header-sub">AI Tools สำหรับ step นี้ &nbsp;·&nbsp; ${step.tools.length} tools</div>
+      </div>
+    </div>
+    <div class="tools-grid">
+      ${step.tools.map((tool, ti) => `
+        <div class="tool-card">
+          <div class="tool-top">
+            <div class="tool-name-row">
+              <span class="tool-emoji">${tool.emoji}</span>
+              <span class="tool-name">${tool.name}</span>
+            </div>
+            <span class="tool-badge">${tool.badge}</span>
+          </div>
+          <div class="tool-desc">${tool.desc}</div>
+          <div class="tool-actions">
+            <a href="${tool.url}" target="_blank" class="btn-link">🔗 เปิด Tool</a>
+            <button class="btn-prompt" onclick="openModal(${idx},${ti})">📋 ดู Prompt</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+async function openModal(stepIdx, toolIdx) {
+  const tool = stages[activeStageIdx].steps[stepIdx].tools[toolIdx];
+  currentStepIdx = stepIdx;
+  currentToolIdx = toolIdx;
+  currentLang = 'en';
+
+  document.getElementById('modalTitle').textContent = `${tool.name} — Prompt Template`;
+  document.getElementById('copyBtn').style.background = accentColor;
+  document.getElementById('copyBtn').textContent = '📋 Copy Prompt';
+  document.getElementById('copyBtn').disabled = false;
+
+  document.getElementById('btnLangEN').classList.add('active');
+  document.getElementById('btnLangTH').classList.remove('active');
+
+  document.getElementById('modalSub').textContent = '📋 Prompt Template — copy ไปแปะกับ AI tool ได้เลย';
+  document.getElementById('promptBox').textContent = tool.prompt;
+  modalPromptText = tool.prompt;
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+async function showThPrompt(stepIdx, toolIdx, tool) {
+  const cacheKey = `${activeStageIdx}-${stepIdx}-${toolIdx}`;
+  document.getElementById('modalSub').textContent = '🇹🇭 Prompt ภาษาไทย — copy ไปแปะกับ AI tool ได้เลย';
+
+  if (thCache[cacheKey]) {
+    document.getElementById('promptBox').textContent = thCache[cacheKey];
+    modalPromptText = thCache[cacheKey];
+    return;
+  }
+
+  document.getElementById('promptBox').innerHTML =
+    `<div class="translating"><div class="spin"></div>กำลังแปลเป็นภาษาไทย...</div>`;
+  document.getElementById('copyBtn').textContent = '⏳ กำลังแปล...';
+  document.getElementById('copyBtn').disabled = true;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: `แปล prompt ต่อไปนี้เป็นภาษาไทยให้ครบถ้วนและเป็นธรรมชาติ คงความหมายเดิมทุกอย่าง รักษา structure (หัวข้อ, numbering, bullet) ให้เหมือนเดิม คำศัพท์เทคนิค industry standard (เช่น API, prompt, sprint, backlog, UX, SLA) ให้คงเป็นภาษาอังกฤษ ตอบเฉพาะ prompt ที่แปลแล้วเท่านั้น ไม่ต้องมีคำนำหรืออธิบาย:\n\n${tool.prompt}`
+        }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const translated = data.content?.[0]?.text || tool.prompt;
+    thCache[cacheKey] = translated;
+    document.getElementById('promptBox').textContent = translated;
+    modalPromptText = translated;
+  } catch(e) {
+    console.error('Translation error:', e);
+    document.getElementById('promptBox').textContent = '⚠️ ไม่สามารถแปลได้ในขณะนี้ กรุณาลองใหม่\n\n' + tool.prompt;
+    modalPromptText = tool.prompt;
+  }
+
+  document.getElementById('copyBtn').textContent = '📋 Copy Prompt';
+  document.getElementById('copyBtn').disabled = false;
+}
+
+async function switchLang(lang) {
+  if (currentLang === lang || currentStepIdx === null) return;
+  currentLang = lang;
+
+  document.getElementById('btnLangEN').classList.toggle('active', lang === 'en');
+  document.getElementById('btnLangTH').classList.toggle('active', lang === 'th');
+
+  const tool = stages[activeStageIdx].steps[currentStepIdx].tools[currentToolIdx];
+
+  if (lang === 'en') {
+    document.getElementById('modalSub').textContent = '📋 Prompt Template — copy ไปแปะกับ AI tool ได้เลย';
+    document.getElementById('promptBox').textContent = tool.prompt;
+    modalPromptText = tool.prompt;
+    document.getElementById('copyBtn').textContent = '📋 Copy Prompt';
+    document.getElementById('copyBtn').disabled = false;
+  } else {
+    await showThPrompt(currentStepIdx, currentToolIdx, tool);
+  }
+}
+
+function closeModalBg(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function copyPrompt() {
+  navigator.clipboard.writeText(modalPromptText).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy Prompt', 2000);
+  });
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+init();
+</script>
+</body>
+</html>
