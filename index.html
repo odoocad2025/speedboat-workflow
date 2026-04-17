@@ -210,11 +210,46 @@
     background: var(--card); border: 1px solid var(--border);
     border-radius: 14px; padding: 18px 20px;
     transition: transform 0.18s, border-color 0.2s, box-shadow 0.2s;
+    position: relative; overflow: hidden;
   }
-  .tool-card:hover {
+  .tool-card.available {
+    border-color: rgba(255,255,255,0.1);
+  }
+  .tool-card.available:hover {
     transform: translateY(-3px);
-    border-color: rgba(255,255,255,0.13);
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
     box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+  }
+  .tool-card.unavailable {
+    border: 1.5px dashed rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.02);
+    opacity: 0.65;
+  }
+  .tool-card.unavailable:hover {
+    border-color: rgba(255,255,255,0.18);
+  }
+
+  /* Available badge */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    padding: 3px 8px; border-radius: 20px;
+    text-transform: uppercase; flex-shrink: 0;
+  }
+  .status-badge.ready {
+    background: rgba(34,197,94,0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34,197,94,0.3);
+  }
+  .status-badge.not-ready {
+    background: rgba(255,255,255,0.05);
+    color: #666;
+    border: 1px dashed rgba(255,255,255,0.15);
+  }
+
+  /* Disabled buttons */
+  .btn-link.disabled, .btn-prompt.disabled {
+    opacity: 0.35; cursor: not-allowed; pointer-events: none;
   }
 
   .tool-top {
@@ -341,9 +376,28 @@
     flex:1; padding:11px; border-radius:10px; border:none;
     font-size:13px; font-weight:700; cursor:pointer;
     background: var(--accent); color:#111;
-    transition: opacity 0.2s;
+    transition: background 0.3s, transform 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   .btn-copy-main:hover { opacity:0.85; }
+  .btn-copy-main.copied {
+    background: #22c55e !important;
+    transform: scale(1.02);
+  }
+
+  /* Toast */
+  .copy-toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #22c55e; color: #fff;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    padding: 12px 24px; border-radius: 40px;
+    box-shadow: 0 8px 24px rgba(34,197,94,0.4);
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    z-index: 9999;
+  }
+  .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -409,6 +463,9 @@
   </div>
 </div>
 
+<!-- Toast -->
+<div class="copy-toast" id="copyToast">✅ Copy สำเร็จแล้ว!</div>
+
 <script>
 const stages = [
   {
@@ -420,7 +477,8 @@ const stages = [
         detail:'ระบุขอบเขตงาน deliverables สิ่งที่อยู่ใน/นอก scope อย่างชัดเจน',
         tools:[
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'Brainstorm scope boundary และสร้าง in/out list',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`You are a project scoping expert. Help me define a clear project scope.
 
 Project Idea: [อธิบาย project]
@@ -434,9 +492,24 @@ Please provide:
 5. Constraints (time / budget / tech)
 6. Dependencies
 
-Format as a Scope Statement document.` },
+Format as a Scope Statement document.`,
+            promptTH:`คุณคือผู้เชี่ยวชาญด้านการกำหนดขอบเขตโครงการ ช่วยฉันกำหนด Project Scope ที่ชัดเจน
+
+Project Idea: [อธิบาย project]
+Stakeholders: [ผู้มีส่วนได้ส่วนเสีย]
+
+กรุณาระบุ:
+1. วัตถุประสงค์ของโครงการ (1 ประโยค)
+2. สิ่งที่อยู่ใน Scope (สิ่งที่จะส่งมอบ)
+3. สิ่งที่อยู่นอก Scope (สิ่งที่จะไม่ทำ)
+4. สมมติฐานหลัก
+5. ข้อจำกัด (เวลา / งบประมาณ / เทคโนโลยี)
+6. Dependencies
+
+จัดทำในรูปแบบเอกสาร Scope Statement ที่พร้อมแชร์กับ Stakeholders` },
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'วิเคราะห์ scope creep risks และ sign-off checklist',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Act as a senior business analyst. Review and refine the project scope, then identify scope creep risks.
 
 Initial Scope Draft: [วาง scope draft]
@@ -445,7 +518,16 @@ Deliverables:
 1. Polished Scope Statement
 2. Top 5 scope creep risks with prevention strategies
 3. Change request process recommendation
-4. Stakeholder sign-off checklist` }
+4. Stakeholder sign-off checklist`,
+            promptTH:`ทำหน้าที่เป็น Senior Business Analyst ช่วยรีวิวและปรับปรุง Project Scope พร้อมระบุความเสี่ยงด้าน Scope Creep
+
+Initial Scope Draft: [วาง scope draft]
+
+ส่งมอบ:
+1. Scope Statement ที่สมบูรณ์
+2. ความเสี่ยง Scope Creep 5 อันดับแรก พร้อมแนวทางป้องกัน
+3. คำแนะนำกระบวนการ Change Request
+4. Checklist สำหรับ Stakeholder Sign-off` }
         ]
       },
       {
@@ -453,7 +535,8 @@ Deliverables:
         detail:'แบ่ง phase, milestone, timeline และผู้รับผิดชอบ',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง project plan พร้อม milestones และ RACI chart',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`You are a project planning expert. Create a detailed project plan.
 
 Project: [ชื่อโปรเจกต์]
@@ -466,9 +549,23 @@ Provide:
 2. Milestones & Go/No-Go criteria
 3. RACI chart for key activities
 4. Timeline (Gantt-style text)
-5. Buffer/contingency recommendations` },
+5. Buffer/contingency recommendations`,
+            promptTH:`คุณคือผู้เชี่ยวชาญด้านการวางแผนโครงการ สร้าง Project Plan โดยละเอียด
+
+Project: [ชื่อโปรเจกต์]
+Duration: [ระยะเวลา]
+Team Size: [จำนวนคน + roles]
+Goal: [เป้าหมาย]
+
+ระบุ:
+1. การแบ่ง Phase พร้อมระยะเวลา
+2. Milestones & เกณฑ์ Go/No-Go
+3. RACI Chart สำหรับกิจกรรมหลัก
+4. Timeline (รูปแบบ Gantt text)
+5. คำแนะนำ Buffer/Contingency` },
           { name:'Notion AI', emoji:'📝', badge:'Productivity', desc:'Generate project wiki structure ใน Notion',
             url:'https://notion.so',
+            available:false,
             prompt:`Create a Notion project workspace structure for a software project.
 
 Required sections:
@@ -480,7 +577,19 @@ Required sections:
 6. 🤝 Meeting Notes template
 7. 📊 Status Dashboard
 
-For each section, list recommended properties/columns and best Notion view type.` }
+For each section, list recommended properties/columns and best Notion view type.`,
+            promptTH:`สร้างโครงสร้าง Notion Workspace สำหรับโครงการซอฟต์แวร์
+
+ส่วนที่ต้องการ:
+1. 📋 Project Overview (เป้าหมาย, scope, ทีม)
+2. 🗓️ Timeline & Milestones (database)
+3. ✅ Task Tracker (Kanban)
+4. ⚠️ Risk Register
+5. 📁 Doc Hub
+6. 🤝 Template Meeting Notes
+7. 📊 Status Dashboard
+
+สำหรับแต่ละส่วน ระบุ properties/columns ที่แนะนำ และ Notion view type ที่เหมาะสม` }
         ]
       },
       {
@@ -488,7 +597,8 @@ For each section, list recommended properties/columns and best Notion view type.
         detail:'ระบุความเสี่ยง โอกาสเกิด และ mitigation plan',
         tools:[
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง Risk Matrix พร้อม mitigation strategies',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`You are a risk management expert. Create a risk register for this project.
 
 Project Type: [ประเภทโปรเจกต์]
@@ -505,7 +615,24 @@ For each risk provide:
 - Contingency Plan
 - Risk Owner
 
-Provide at least 10 risks sorted by Risk Score descending.` }
+Provide at least 10 risks sorted by Risk Score descending.`,
+            promptTH:`คุณคือผู้เชี่ยวชาญด้านการบริหารความเสี่ยง สร้าง Risk Register สำหรับโครงการนี้
+
+Project Type: [ประเภทโปรเจกต์]
+Tech Stack: [technologies used]
+Team Experience: [junior/mid/senior mix]
+
+สำหรับแต่ละความเสี่ยง ระบุ:
+- Risk ID & คำอธิบาย
+- หมวดหมู่ (Technical / Resource / Schedule / External)
+- โอกาสเกิด (High/Med/Low)
+- ผลกระทบ (High/Med/Low)
+- Risk Score
+- แนวทาง Mitigation
+- Contingency Plan
+- เจ้าของความเสี่ยง
+
+ระบุอย่างน้อย 10 ความเสี่ยง เรียงตาม Risk Score จากมากไปน้อย` }
         ]
       },
       {
@@ -513,7 +640,8 @@ Provide at least 10 risks sorted by Risk Score descending.` }
         detail:'ประเมิน team, budget, tool และ infrastructure ที่ต้องใช้',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'วิเคราะห์ resource gap และ budget estimation',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Act as a resource planning specialist.
 
 Project Scope: [อธิบาย scope]
@@ -526,7 +654,20 @@ Provide:
 3. Tool & license requirements with cost
 4. Infrastructure requirements
 5. Budget breakdown template
-6. Capacity planning per sprint/month` }
+6. Capacity planning per sprint/month`,
+            promptTH:`ทำหน้าที่เป็นผู้เชี่ยวชาญด้านการวางแผนทรัพยากร
+
+Project Scope: [อธิบาย scope]
+Timeline: [duration]
+Available Team: [สมาชิกทีมปัจจุบันและทักษะ]
+
+ระบุ:
+1. ตาราง Skills ที่ต้องการ vs ที่มีอยู่
+2. การวิเคราะห์ Skill Gap & คำแนะนำการจ้างงาน
+3. ความต้องการเครื่องมือและ License พร้อมค่าใช้จ่าย
+4. ความต้องการ Infrastructure
+5. Template งบประมาณโดยละเอียด
+6. การวางแผนกำลังคนต่อ Sprint/เดือน` }
         ]
       },
       {
@@ -535,6 +676,7 @@ Provide:
         tools:[
           { name:'Gamma', emoji:'⚡', badge:'Slide AI', desc:'Generate kickoff deck จาก outline ได้ในไม่กี่นาที พร้อม design สวยงาม',
             url:'https://gamma.app',
+            available:true,
             prompt:`Create a project kickoff presentation outline for Gamma.
 
 Project: [ชื่อโปรเจกต์]
@@ -555,9 +697,30 @@ Slide outline:
 10. What We Need From You — Asks to stakeholders
 11. Q&A + Next Steps
 
-For each slide: suggest the key message (1 sentence), main content points, and recommended visual type (chart / diagram / table / icon grid).` },
+For each slide: suggest the key message (1 sentence), main content points, and recommended visual type (chart / diagram / table / icon grid).`,
+            promptTH:`สร้าง outline สำหรับ Kickoff Presentation ใน Gamma
+
+Project: [ชื่อโปรเจกต์]
+Audience: [เช่น Executive Sponsors, Project Team]
+Duration: [เช่น 45 นาที]
+
+Slide outline:
+1. หน้าปก — ชื่อโครงการ, วันที่, ผู้นำเสนอ
+2. วาระการประชุม
+3. Background & เหตุผลที่ทำตอนนี้
+4. เป้าหมายและ Success Metrics
+5. ภาพรวม Scope (In/Out)
+6. Timeline ระดับสูง
+7. โครงสร้างทีม
+8. วิธีการทำงานร่วมกัน
+9. ความเสี่ยงหลักและการจัดการ
+10. สิ่งที่ต้องการจาก Stakeholders
+11. Q&A + Next Steps
+
+สำหรับแต่ละ Slide ระบุ: Key Message, จุดสำคัญ, และ Visual ที่แนะนำ` },
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'เขียน content ครบทุก slide พร้อม speaker notes',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Write complete kickoff presentation content with speaker notes.
 
 Project: [ชื่อโปรเจกต์]
@@ -582,9 +745,33 @@ Slides to write:
 8. Asks to Stakeholders
 9. Next Steps (first 2 weeks action items)
 
-Keep language clear and free of jargon. Make it energizing for the team.` },
+Keep language clear and free of jargon. Make it energizing for the team.`,
+            promptTH:`เขียน content ครบทุก Slide พร้อม Speaker Notes
+
+Project: [ชื่อโปรเจกต์]
+Audience: [เช่น Executive Sponsors, Project Team]
+Tone: [formal / friendly / energizing]
+Duration: [เวลาทั้งหมด]
+
+สำหรับแต่ละ Slide ระบุ:
+- ชื่อ Slide
+- Key Message (1 ประโยคที่ผู้ฟังจะจำได้)
+- Bullet Points (สูงสุด 4 ข้อ กระชับ)
+- Speaker Notes (สิ่งที่จะพูด จุดเน้น คำถามที่คาดว่าจะเกิดขึ้น)
+
+Slides ที่ต้องเขียน:
+1. Background & เหตุผลที่ทำตอนนี้
+2. เป้าหมายและ Success Metrics (พร้อม SMART KPIs)
+3. Scope (In / Out / Maybe Later)
+4. Timeline & Milestones
+5. บทบาทและความรับผิดชอบของทีม
+6. Governance & วิธีการทำงาน
+7. ความเสี่ยงหลัก
+8. สิ่งที่ต้องการจาก Stakeholders
+9. Next Steps (Action Items 2 สัปดาห์แรก)` },
           { name:'Canva AI', emoji:'🎨', badge:'Design', desc:'ออกแบบ kickoff deck ให้ดูมืออาชีพและตรง brand',
             url:'https://canva.com',
+            available:true,
             prompt:`Help me design a professional kickoff presentation in Canva.
 
 Brand Colors: [primary color, secondary color]
@@ -604,7 +791,27 @@ Suggest:
 - Font pairing (heading + body)
 - Color usage guide (primary for headers, accent for highlights)
 - Icon style (outline / filled / emoji)
-- Template search keywords to use in Canva` }
+- Template search keywords to use in Canva`,
+            promptTH:`ช่วยออกแบบ Kickoff Presentation ที่ดูมืออาชีพใน Canva
+
+Brand Colors: [สีหลัก, สีรอง]
+Logo: [จะอัปโหลดแยก]
+Style: [corporate / modern / minimal / bold]
+จำนวน Slide: ~10-12 slides
+
+แนวทางการออกแบบแต่ละประเภท Slide:
+1. หน้าปก — ชื่อโครงการขนาดใหญ่, Background Image หรือ Abstract Shape, วันที่
+2. Slide วาระ — รายการตัวเลขพร้อม Icon
+3. Slide Content — Layout สม่ำเสมอ: หัวข้อบน, พื้นที่ Content, Data Visualization ตามต้องการ
+4. Slide Timeline — Roadmap แนวนอนพร้อม Phase และ Milestone Marker
+5. Slide ทีม — Photo Grid หรือ Avatar Icon พร้อมชื่อและตำแหน่ง
+6. Slide ความเสี่ยง — 2x2 Matrix หรือ Traffic Light Table
+
+แนะนำ:
+- Font pairing (heading + body)
+- แนวทางการใช้สี
+- Style ไอคอน (outline / filled / emoji)
+- คีย์เวิร์ดค้นหา Template ใน Canva` }
         ]
       }
     ]
@@ -618,7 +825,8 @@ Suggest:
         detail:'แปลง note ดิบเป็น requirement ที่ชัดเจน แยก business rule, exceptions และ expected outcomes',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'แปลง workshop notes เป็น structured requirements พร้อม business rules',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`You are a senior business analyst. Convert the following raw workshop notes into structured, implementation-ready requirements.
 
 Workshop Notes / Raw Input:
@@ -642,9 +850,33 @@ For each requirement:
 ## Excluded / Out of Scope
 - Items explicitly not in this phase
 
-Flag any ambiguous statements that need clarification from stakeholders.` },
+Flag any ambiguous statements that need clarification from stakeholders.`,
+            promptTH:`คุณคือ Senior Business Analyst ช่วยแปลง Workshop Notes ดิบให้เป็น Requirements ที่พร้อม Implement
+
+Workshop Notes / Raw Input:
+[วาง notes จาก workshop หรือ meeting]
+
+จัดโครงสร้าง Output ดังนี้:
+
+## Functional Requirements
+สำหรับแต่ละ Requirement:
+- REQ-ID: [เช่น REQ-001]
+- ชื่อ: [ชื่อสั้น]
+- คำอธิบาย: [ชัดเจน ไม่คลุมเครือ]
+- Business Rule: [กฎหรือ Logic เบื้องหลัง]
+- ผลลัพธ์ที่คาดหวัง: [สิ่งที่ควรเกิดขึ้น]
+- Exception/Edge Case: [กรณีพิเศษ]
+- Acceptance Criteria (รูปแบบ Given/When/Then)
+
+## Non-Functional Requirements
+- Performance, Security, Usability ฯลฯ
+
+## ข้อกำหนดที่ยกเว้น / นอก Scope
+
+ระบุข้อความที่คลุมเครือที่ต้องชี้แจงกับ Stakeholders` },
           { name:'Gemini', emoji:'💎', badge:'Google AI', desc:'สกัด requirements จาก document และ transcript อัตโนมัติ',
-            url:'https://gemini.google.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Analyze the following document/transcript and extract all requirements in a structured format.
 
 Input Content:
@@ -658,9 +890,24 @@ Extract and categorize:
 5. Data Requirements (inputs, outputs, formats)
 6. Integration Points (systems that need to connect)
 
-For each item: state the source quote, interpreted requirement, and confidence level (High/Med/Low).` },
+For each item: state the source quote, interpreted requirement, and confidence level (High/Med/Low).`,
+            promptTH:`วิเคราะห์เอกสาร/transcript ต่อไปนี้และสกัด Requirements ทั้งหมดในรูปแบบที่มีโครงสร้าง
+
+Input Content:
+[วาง document, meeting transcript, หรือ email thread]
+
+สกัดและจัดหมวดหมู่:
+1. Explicit Requirements (ที่ระบุชัดเจน)
+2. Implicit Requirements (ที่อนุมานจาก Context)
+3. ข้อจำกัด (Technical, Regulatory, เวลา, งบประมาณ)
+4. Business Rules (เงื่อนไขและ Logic)
+5. Data Requirements (Input, Output, Format)
+6. Integration Points (ระบบที่ต้องเชื่อมต่อ)
+
+สำหรับแต่ละรายการ: ระบุ Quote ต้นฉบับ, Requirement ที่แปลความ, และระดับความมั่นใจ (High/Med/Low)` },
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'ตรวจสอบ completeness และ consistency ของ requirements',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Review the following requirements document for completeness, consistency, and clarity.
 
 Requirements Document:
@@ -675,7 +922,22 @@ Check for:
 6. Requirements that are too large (should be split)
 7. Missing actor/role definitions
 
-Output: A review table with [REQ-ID | Issue Type | Description | Suggested Fix]` }
+Output: A review table with [REQ-ID | Issue Type | Description | Suggested Fix]`,
+            promptTH:`รีวิวเอกสาร Requirements ต่อไปนี้ด้านความครบถ้วน ความสอดคล้อง และความชัดเจน
+
+Requirements Document:
+[วาง requirements]
+
+ตรวจสอบ:
+1. ภาษาที่คลุมเครือ (เช่น "เร็ว", "ง่าย", "ยืดหยุ่น" — ระบุและแนะนำค่าที่วัดได้)
+2. Acceptance Criteria ที่ขาดหาย
+3. Requirements ที่ขัดแย้งกัน
+4. Requirements ที่วัดผลไม่ได้
+5. Edge Cases ที่หายไป
+6. Requirements ที่ใหญ่เกินไป (ควรแบ่ง)
+7. คำนิยาม Actor/Role ที่ขาดหาย
+
+Output: ตารางรีวิว [REQ-ID | ประเภทปัญหา | คำอธิบาย | แนะนำแก้ไข]` }
         ]
       },
       {
@@ -683,7 +945,8 @@ Output: A review table with [REQ-ID | Issue Type | Description | Suggested Fix]`
         detail:'ประเมินว่า requirement ไหน fit standard, workaround ได้, ต้อง custom หรือควร integrate',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'วิเคราะห์ fit-gap และ recommend solution approach ต่อ requirement',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`You are an ERP/system implementation consultant. Conduct a Fit-Gap analysis for the following requirements against our standard system capabilities.
 
 System/Platform: [ชื่อ system เช่น SAP, Salesforce, custom platform]
@@ -698,9 +961,25 @@ For each requirement, classify as:
 
 Output table: [REQ-ID | Requirement | Classification | Standard Coverage | Gap Description | Recommended Solution | Effort Estimate (S/M/L/XL)]
 
-End with: Summary of total Fit % vs Gap % and key risks.` },
+End with: Summary of total Fit % vs Gap % and key risks.`,
+            promptTH:`คุณคือที่ปรึกษาการ Implement ระบบ ERP/Software ทำการวิเคราะห์ Fit-Gap สำหรับ Requirements เทียบกับ System มาตรฐาน
+
+System/Platform: [ชื่อ system เช่น SAP, Salesforce]
+Requirements List:
+[วาง list of requirements]
+
+จำแนกแต่ละ Requirement เป็น:
+- ✅ FIT: ระบบมาตรฐานรองรับครบ
+- 🔶 PARTIAL FIT: รองรับได้บางส่วน ต้องปรับ Config หรือ Workaround
+- ❌ GAP: ไม่รองรับ — ต้อง Custom หรือ Integration
+- 🔄 WORKAROUND: ทำได้แต่ต้องเปลี่ยนวิธีการ
+
+Output ตาราง: [REQ-ID | Requirement | การจำแนก | Coverage มาตรฐาน | Gap | แนะนำ Solution | ขนาดงาน S/M/L/XL]
+
+สรุป: % Fit vs % Gap และความเสี่ยงหลัก` },
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'เปรียบเทียบ custom vs integration vs workaround options',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Evaluate the following gaps and recommend the best solution approach for each.
 
 System Context: [ชื่อ system และ tech stack]
@@ -715,9 +994,25 @@ For each gap, compare these options:
 
 Evaluation criteria: Cost | Time | Maintainability | Risk | User Impact
 
-Output: Decision matrix per gap + final recommendation with justification.` },
+Output: Decision matrix per gap + final recommendation with justification.`,
+            promptTH:`ประเมิน Gap ต่อไปนี้และแนะนำแนวทางแก้ไขที่ดีที่สุดสำหรับแต่ละรายการ
+
+System Context: [ชื่อ system และ tech stack]
+Gap Items:
+[วาง list of gaps จากการวิเคราะห์ Fit-Gap]
+
+สำหรับแต่ละ Gap เปรียบเทียบตัวเลือก:
+1. Custom Development — พัฒนาเอง
+2. Third-party Integration — ใช้เครื่องมือ/API ภายนอก
+3. Process Workaround — เปลี่ยนกระบวนการทางธุรกิจให้เข้ากับระบบ
+4. Configuration — ปรับ Setting ระบบ
+
+เกณฑ์การประเมิน: ต้นทุน | เวลา | ความง่ายในการดูแล | ความเสี่ยง | ผลกระทบต่อผู้ใช้
+
+Output: Decision Matrix ต่อ Gap + คำแนะนำสุดท้ายพร้อมเหตุผล` },
           { name:'Miro AI', emoji:'🗺️', badge:'Visual', desc:'สร้าง fit-gap heatmap visual สำหรับ stakeholder review',
             url:'https://miro.com',
+            available:false,
             prompt:`Create a Fit-Gap heatmap visualization description for Miro.
 
 Requirements by Module:
@@ -736,7 +1031,26 @@ Design a Miro board with:
 3. Effort tags (S/M/L/XL) on each card
 4. Summary legend and totals per module
 
-Describe layout and sticky note content so I can recreate in Miro.` }
+Describe layout and sticky note content so I can recreate in Miro.`,
+            promptTH:`สร้าง Fit-Gap Heatmap visualization สำหรับ Miro
+
+Requirements by Module:
+[วาง requirements จัดกลุ่มตาม module/area]
+
+Gap Classifications:
+[วาง ผลการวิเคราะห์ Fit-Gap]
+
+ออกแบบ Miro Board ประกอบด้วย:
+1. Module เป็น Swimlane (แนวนอน)
+2. Requirements เป็น Sticky Note สีตามสถานะ:
+   - เขียว = Fit
+   - เหลือง = Partial Fit / Workaround
+   - แดง = Gap (ต้อง Custom)
+   - น้ำเงิน = ต้อง Integration
+3. Tag ขนาดงาน (S/M/L/XL) บนแต่ละ Card
+4. Legend สรุปและยอดรวมต่อ Module
+
+อธิบาย Layout และ content Sticky Note ให้พร้อมสร้างใน Miro` }
         ]
       },
       {
@@ -744,7 +1058,8 @@ Describe layout and sticky note content so I can recreate in Miro.` }
         detail:'รวบรวมสิ่งที่ยังไม่ชัด และสิ่งที่ทีมกำลังสมมติไว้ก่อน เพื่อกัน requirement หล่น',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง Open Questions log และ Assumptions register',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Review the following requirements and identify all open questions and assumptions that need to be resolved before development begins.
 
 Requirements / Context:
@@ -769,9 +1084,35 @@ For each assumption:
 - Validation Method: [how to confirm this assumption]
 - Owner: [who owns validating this]
 
-Sort both lists by Priority (High first).` },
+Sort both lists by Priority (High first).`,
+            promptTH:`รีวิว Requirements ต่อไปนี้และระบุ Open Questions และ Assumptions ทั้งหมดที่ต้องแก้ไขก่อนเริ่มพัฒนา
+
+Requirements / Context:
+[วาง requirements หรือ workshop notes]
+
+สร้าง Output 2 ส่วน:
+
+## Open Questions Log
+สำหรับแต่ละคำถาม:
+- Q-ID: [Q-001, Q-002...]
+- คำถาม: [คำถามที่ต้องการคำตอบ]
+- ผลกระทบถ้าไม่แก้ไข: [สิ่งที่จะติดขัด]
+- เจ้าของ: [ใครควรตอบ — BA / PO / Business / Tech]
+- Priority: High / Med / Low
+- กำหนดแก้ไข: [แนะนำตามความเร่งด่วน]
+
+## Assumptions Register
+สำหรับแต่ละ Assumption:
+- A-ID: [A-001, A-002...]
+- Assumption: [สิ่งที่ทีมสมมติว่าเป็นความจริง]
+- ความเสี่ยงถ้าผิด: [ผลที่ตามมา]
+- วิธีการ Validate: [วิธียืนยัน]
+- เจ้าของ: [ผู้รับผิดชอบ]
+
+เรียงทั้ง 2 รายการตาม Priority (High ก่อน)` },
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง follow-up email เพื่อ confirm คำถามกับ stakeholder',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Draft a professional follow-up email to stakeholders to resolve the following open questions from our requirements workshop.
 
 Stakeholder Name/Role: [ชื่อและตำแหน่ง]
@@ -787,7 +1128,23 @@ Email requirements:
 - Include deadline for responses
 - Make it easy to reply (numbered list)
 - Add context for each question so stakeholder understands why it matters
-- Thai or English based on: [ระบุภาษา]` }
+- Thai or English based on: [ระบุภาษา]`,
+            promptTH:`ร่าง Email ติดตามผลไปยัง Stakeholders เพื่อแก้ไข Open Questions จาก Workshop
+
+Stakeholder Name/Role: [ชื่อและตำแหน่ง]
+Project Name: [ชื่อโปรเจกต์]
+Workshop Date: [วันที่]
+
+Open Questions ที่ต้องแก้ไข:
+[วาง list of open questions]
+
+ข้อกำหนด Email:
+- Tone: เป็นทางการแต่กระชับ
+- จัดกลุ่มคำถามตาม Topic/Module
+- ระบุ Deadline สำหรับการตอบ
+- ทำให้ตอบได้ง่าย (รายการตัวเลข)
+- อธิบาย Context ของแต่ละคำถามว่าเหตุใดจึงสำคัญ
+- ภาษา: [ระบุภาษา]` }
         ]
       },
       {
@@ -795,7 +1152,8 @@ Email requirements:
         detail:'จัดลำดับ requirement และตกลง MVP / phase rollout ให้ชัด',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'จัดลำดับด้วย MoSCoW + กำหนด MVP scope และ phase plan',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`You are a product manager. Prioritize the following requirements and define a clear MVP scope and phased rollout plan.
 
 Requirements List:
@@ -820,9 +1178,32 @@ Step 3 — Phased Rollout Plan:
 - Phase 3: [requirements] — Target: [date]
 
 Step 4 — Dependencies:
-List any requirements that must be done before others.` },
+List any requirements that must be done before others.`,
+            promptTH:`คุณคือ Product Manager ช่วย Prioritize Requirements และกำหนด MVP Scope พร้อม Phased Rollout Plan
+
+Requirements List:
+[วาง list of requirements พร้อมคำอธิบายย่อ]
+
+Business Constraints:
+- Go-Live: [วันที่]
+- งบประมาณ: [จำนวนหรือ T-shirt size]
+- กำลังทีม: [Sprint ที่มี]
+
+ขั้นตอนที่ 1 — MoSCoW Classification:
+Must Have / Should Have / Could Have / Won't Have (Release นี้) พร้อมเหตุผล
+
+ขั้นตอนที่ 2 — กำหนด MVP:
+รายการที่อยู่ใน MVP vs เลื่อนไป Phase 2+
+
+ขั้นตอนที่ 3 — Phased Rollout Plan:
+- Phase 1 (MVP): [requirements] — เป้าหมาย: [วันที่]
+- Phase 2: [requirements] — เป้าหมาย: [วันที่]
+- Phase 3: [requirements] — เป้าหมาย: [วันที่]
+
+ขั้นตอนที่ 4 — Dependencies` },
           { name:'Miro AI', emoji:'🗺️', badge:'Visual', desc:'สร้าง roadmap visual และ phase breakdown board',
             url:'https://miro.com',
+            available:false,
             prompt:`Create a product roadmap visualization for Miro showing phased requirement delivery.
 
 Requirements by Phase:
@@ -838,9 +1219,26 @@ Design a Miro roadmap board with:
 5. Go-live milestone markers
 6. Traffic light status (Not Started / In Progress / Done)
 
-Describe the layout and card content so I can build it in Miro.` },
+Describe the layout and card content so I can build it in Miro.`,
+            promptTH:`สร้าง Product Roadmap visualization สำหรับ Miro แสดงการส่งมอบ Requirements แบบ Phase
+
+Requirements by Phase:
+Phase 1 (MVP): [รายการ]
+Phase 2: [รายการ]
+Phase 3: [รายการ]
+
+ออกแบบ Miro Roadmap Board:
+1. Timeline แนวนอน (Phase เป็น Column)
+2. Requirement Cards ในแต่ละ Phase (สีตาม Module/Area)
+3. Dependency Arrows ระหว่าง Card
+4. บอกขนาดงานบนแต่ละ Card (S/M/L/XL)
+5. Milestone Markers
+6. สถานะ Traffic Light (ยังไม่เริ่ม / กำลังทำ / เสร็จแล้ว)
+
+อธิบาย Layout และ content บน Card ให้พร้อมสร้างใน Miro` },
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง MVP scope document สำหรับ stakeholder sign-off',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Create an MVP Scope Document for stakeholder sign-off.
 
 Project: [ชื่อโปรเจกต์]
@@ -861,7 +1259,28 @@ Document should include:
 6. Risks of current scope
 7. Sign-off section (Name, Role, Date, Signature line)
 
-Format as a formal document ready to send to business stakeholders.` }
+Format as a formal document ready to send to business stakeholders.`,
+            promptTH:`สร้าง MVP Scope Document สำหรับ Stakeholder Sign-off
+
+Project: [ชื่อโปรเจกต์]
+Go-Live Target: [วันที่]
+
+MVP Inclusions:
+[วาง list of MVP requirements]
+
+MVP Exclusions (เลื่อนออกไป):
+[วาง list of deferred items]
+
+เอกสารควรประกอบด้วย:
+1. Executive Summary (2-3 ประโยค)
+2. เป้าหมาย MVP & Success Criteria
+3. ตาราง In-Scope Requirements (ID, ชื่อ, Priority, เหตุผล)
+4. ตาราง Out-of-Scope (ID, ชื่อ, เหตุผลเลื่อน, Phase เป้าหมาย)
+5. Assumptions & Dependencies หลัก
+6. ความเสี่ยงของ Scope ปัจจุบัน
+7. ส่วน Sign-off (ชื่อ, ตำแหน่ง, วันที่, ลายเซ็น)
+
+จัดทำเป็นเอกสารทางการพร้อมส่งให้ Business Stakeholders` }
         ]
       }
     ]
@@ -876,6 +1295,7 @@ Format as a formal document ready to send to business stakeholders.` }
         tools:[
           { name:'Whimsical', emoji:'🌀', badge:'Diagram', desc:'วาด flowchart และ process diagram แบบ visual ร่วมกันแบบ real-time',
             url:'https://whimsical.com',
+            available:true,
             prompt:`Help me create a detailed process flow for Whimsical with swimlanes.
 
 Process Name: [ชื่อ process เช่น Purchase Order Approval]
@@ -898,9 +1318,31 @@ Also identify:
 - SLA per step (expected time)
 - Pain points in As-Is to fix in To-Be
 
-Format as a numbered flow I can translate into a Whimsical flowchart with swimlanes.` },
+Format as a numbered flow I can translate into a Whimsical flowchart with swimlanes.`,
+            promptTH:`ช่วยสร้าง Process Flow โดยละเอียดสำหรับ Whimsical แบบ Swimlane
+
+Process Name: [ชื่อ process เช่น Purchase Order Approval]
+Trigger: [สิ่งที่เริ่ม process]
+End State: [ผลลัพธ์เมื่อ "เสร็จ"]
+Actors/Roles: [รายชื่อทุกคนหรือระบบที่เกี่ยวข้อง]
+
+สำหรับแต่ละขั้นตอน ระบุ:
+1. ชื่อขั้นตอน
+2. ผู้ดำเนินการ (คนหรือระบบ)
+3. การกระทำ (สิ่งที่ทำ)
+4. Decision Points (เงื่อนไข Yes/No)
+5. Output/เอกสารที่ได้
+6. Handoff ไปยังผู้ดำเนินการถัดไป
+7. Exception Paths (กรณีผิดพลาด)
+
+ระบุเพิ่มเติม:
+- Approval Gates (ใครอนุมัติ, เกณฑ์)
+- System Touchpoints (ระบบที่ใช้แต่ละขั้น)
+- SLA ต่อขั้นตอน
+- Pain Points ของ As-Is เพื่อปรับปรุงใน To-Be` },
           { name:'Mermaid', emoji:'🧜', badge:'Diagram-as-Code', desc:'Generate process diagrams เป็น code ที่ version control ได้',
             url:'https://mermaid.live',
+            available:true,
             prompt:`Generate Mermaid.js diagrams for the following business process.
 
 Process: [ชื่อ process]
@@ -913,9 +1355,22 @@ Create ALL of the following with valid Mermaid.js syntax:
 2. Sequence Diagram — interactions between actors/systems
 3. State Diagram — status transitions of the main entity
 
-Make sure each diagram is complete and compilable.` },
+Make sure each diagram is complete and compilable.`,
+            promptTH:`สร้าง Mermaid.js Diagrams สำหรับ Business Process ต่อไปนี้
+
+Process: [ชื่อ process]
+Actors: [รายชื่อ roles/systems]
+Steps: [อธิบาย flow โดยย่อ]
+
+สร้างทั้งหมดด้วย Mermaid.js syntax ที่ถูกต้อง:
+1. Flowchart (TD) — กระบวนการหลักพร้อม Decision Diamonds
+2. Sequence Diagram — การโต้ตอบระหว่าง actors/systems
+3. State Diagram — การเปลี่ยนสถานะของ entity หลัก
+
+ให้แน่ใจว่าแต่ละ Diagram ครบถ้วนและสามารถ Compile ได้` },
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'วิเคราะห์ As-Is และออกแบบ To-Be process พร้อม RACI',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`You are a business process consultant. Analyze the current process and design an optimized To-Be version.
 
 As-Is Process:
@@ -933,7 +1388,25 @@ Provide:
 4. Process Change Impact (steps eliminated/added/modified)
 5. RACI Matrix for To-Be process
 
-Format step-by-step so I can map it to a Whimsical or Mermaid diagram.` }
+Format step-by-step so I can map it to a Whimsical or Mermaid diagram.`,
+            promptTH:`คุณคือที่ปรึกษา Business Process วิเคราะห์กระบวนการปัจจุบันและออกแบบ To-Be ที่ปรับปรุงแล้ว
+
+As-Is Process:
+[อธิบาย process ปัจจุบัน หรือวาง notes จาก workshop]
+
+เป้าหมาย:
+- [เป้าหมาย 1 เช่น ลดเวลา Approval 50%]
+- [เป้าหมาย 2 เช่น ลด Manual Handoff]
+- [เป้าหมาย 3 เช่น เพิ่ม Audit Trail]
+
+ระบุ:
+1. การวิเคราะห์ As-Is: ขั้นตอน, Bottleneck, Pain Points
+2. To-Be Design: ขั้นตอนที่ปรับปรุง พร้อม Actor, ระบบ, โอกาส Automation
+3. Exception Handling Flows
+4. ผลกระทบจากการเปลี่ยนแปลง (ขั้นตอนที่ตัด/เพิ่ม/แก้ไข)
+5. RACI Matrix สำหรับ To-Be
+
+จัดรูปแบบ Step-by-Step เพื่อนำไปวาดใน Whimsical หรือ Mermaid` }
         ]
       },
       {
@@ -941,7 +1414,8 @@ Format step-by-step so I can map it to a Whimsical or Mermaid diagram.` }
         detail:'ออกแบบ high-level architecture, component diagram และ data flow',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'ออกแบบ architecture และ recommend tech stack',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`You are a software architect. Design a system architecture.
 
 Requirements:
@@ -957,9 +1431,26 @@ Provide:
 4. Data flow description
 5. Scalability considerations
 6. Security architecture notes
-7. Estimated infrastructure cost` },
+7. Estimated infrastructure cost`,
+            promptTH:`คุณคือ Software Architect ออกแบบ System Architecture
+
+Requirements:
+- Type: [web app / mobile / API]
+- Scale: [expected users & requests/sec]
+- Key Features: [รายการ features]
+- Constraints: [งบประมาณ, ความเชี่ยวชาญ, timeline]
+
+ระบุ:
+1. คำแนะนำ Architecture Pattern พร้อมเหตุผล
+2. Component Diagram (รูปแบบ ASCII)
+3. คำแนะนำ Tech Stack พร้อมเหตุผล
+4. คำอธิบาย Data Flow
+5. ข้อพิจารณาด้าน Scalability
+6. Security Architecture
+7. ค่าใช้จ่าย Infrastructure โดยประมาณ` },
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'Generate Mermaid.js architecture diagrams',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Generate Mermaid.js diagrams for this system.
 
 System: [อธิบาย system]
@@ -969,7 +1460,17 @@ Data Flow: [describe flow]
 Create valid Mermaid.js syntax for:
 1. C4 Context Diagram
 2. C4 Container Diagram
-3. Sequence Diagram for main user flow` }
+3. Sequence Diagram for main user flow`,
+            promptTH:`สร้าง Mermaid.js Diagrams สำหรับ System นี้
+
+System: [อธิบาย system]
+Components: [รายการ components]
+Data Flow: [อธิบาย flow]
+
+สร้าง Mermaid.js syntax ที่ถูกต้องสำหรับ:
+1. C4 Context Diagram
+2. C4 Container Diagram
+3. Sequence Diagram สำหรับ User Flow หลัก` }
         ]
       },
       {
@@ -977,7 +1478,8 @@ Create valid Mermaid.js syntax for:
         detail:'สร้าง ER diagram, schema และ index strategy',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'ออกแบบ schema, indexes และ SQL CREATE statements',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Design a production-ready database schema.
 
 Application: [อธิบาย app]
@@ -992,7 +1494,22 @@ Provide:
 4. Index recommendations with justification
 5. Normalization level (1NF-3NF)
 6. PostgreSQL CREATE TABLE statements
-7. Sample seed data` }
+7. Sample seed data`,
+            promptTH:`ออกแบบ Database Schema สำหรับ Production
+
+Application: [อธิบาย app]
+Key Entities: [เช่น User, Order, Product]
+Expected Volume: [ประมาณ rows ต่อตาราง]
+Query Patterns: [Query ที่ใช้บ่อยที่สุด]
+
+ระบุ:
+1. คำอธิบาย ER Diagram
+2. Table Definitions (columns, types, constraints)
+3. ความสัมพันธ์ Primary/Foreign Key
+4. คำแนะนำ Index พร้อมเหตุผล
+5. ระดับ Normalization (1NF-3NF)
+6. PostgreSQL CREATE TABLE statements
+7. ข้อมูล Seed ตัวอย่าง` }
         ]
       },
       {
@@ -1001,6 +1518,7 @@ Provide:
         tools:[
           { name:'v0 by Vercel', emoji:'🎨', badge:'UI Gen', desc:'Generate React UI components จาก text description',
             url:'https://v0.dev',
+            available:false,
             prompt:`Create a [component name] React component:
 
 Style: [modern/minimal/corporate/playful]
@@ -1017,9 +1535,27 @@ Must include:
 ✓ Loading & error states
 ✓ Mobile responsive
 ✓ ARIA accessibility
+✓ Smooth animations`,
+            promptTH:`สร้าง React Component สำหรับ [ชื่อ component]:
+
+Style: [modern/minimal/corporate/playful]
+Colors: [primary, accent, background]
+
+Requirements:
+- [feature 1]
+- [feature 2]
+- [feature 3]
+
+ต้องมี:
+✓ TypeScript interfaces
+✓ Tailwind CSS
+✓ Loading & Error states
+✓ Mobile responsive
+✓ ARIA accessibility
 ✓ Smooth animations` },
           { name:'Figma AI', emoji:'🖼️', badge:'Design', desc:'สร้าง wireframe spec ให้ designer นำไปทำต่อ',
             url:'https://figma.com',
+            available:true,
             prompt:`Create a detailed wireframe specification for this screen.
 
 Screen: [ชื่อ screen]
@@ -1033,7 +1569,21 @@ Describe:
 4. CTA placement and hierarchy
 5. Empty state design
 6. Mobile vs Desktop differences
-7. Interaction states (hover, active, disabled, loading)` }
+7. Interaction states (hover, active, disabled, loading)`,
+            promptTH:`สร้าง Wireframe Specification โดยละเอียดสำหรับ Screen นี้
+
+Screen: [ชื่อ screen]
+User Goal: [สิ่งที่ผู้ใช้ต้องการทำ]
+Key Actions: [Primary และ Secondary Actions]
+
+อธิบาย:
+1. Header/Navigation elements
+2. Layout เนื้อหาหลัก
+3. UI Components หลัก
+4. ตำแหน่ง CTA และ Hierarchy
+5. Empty State Design
+6. ความแตกต่าง Mobile vs Desktop
+7. Interaction States (hover, active, disabled, loading)` }
         ]
       },
       {
@@ -1042,6 +1592,7 @@ Describe:
         tools:[
           { name:'Cursor AI', emoji:'⚡', badge:'IDE', desc:'AI IDE ที่เข้าใจ codebase ทั้งหมด',
             url:'https://cursor.sh',
+            available:false,
             prompt:`@codebase Implement [feature name] following existing patterns.
 
 Requirements:
@@ -1054,9 +1605,23 @@ Steps:
 2. Generate implementation with error handling
 3. Update types/interfaces
 4. List files to modify
-5. Suggest unit tests` },
+5. Suggest unit tests`,
+            promptTH:`@codebase Implement [feature name] ตาม patterns ที่มีอยู่
+
+Requirements:
+- Feature: [อธิบาย]
+- Integrates with: [components/services]
+- Tech stack: [languages/frameworks]
+
+ขั้นตอน:
+1. วิเคราะห์โครงสร้างที่มีอยู่
+2. สร้าง implementation พร้อม Error Handling
+3. อัปเดต types/interfaces
+4. รายการไฟล์ที่ต้องแก้ไข
+5. แนะนำ Unit Tests` },
           { name:'GitHub Copilot', emoji:'🐙', badge:'Coding', desc:'AI pair programmer inline',
             url:'https://github.com/features/copilot',
+            available:false,
             prompt:`// Function: [name]
 // Purpose: [what it does]
 // Input: [param]: [type] — [description]
@@ -1066,9 +1631,20 @@ Steps:
 //   - [requirement 2]
 // Handle edge cases: [null / empty / error]
 // Include: error handling, input validation, JSDoc
-// Pattern: [existing pattern in codebase]` },
+// Pattern: [existing pattern in codebase]`,
+            promptTH:`// Function: [ชื่อ]
+// Purpose: [สิ่งที่ทำ]
+// Input: [param]: [type] — [คำอธิบาย]
+// Output: [return type] — [คำอธิบาย]
+// Requirements:
+//   - [requirement 1]
+//   - [requirement 2]
+// Handle edge cases: [null / empty / error]
+// Include: error handling, input validation, JSDoc
+// Pattern: [pattern ที่มีอยู่ใน codebase]` },
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'Code review เชิงลึก ด้าน security และ performance',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Review this code thoroughly:
 
 \`\`\`[language]
@@ -1084,9 +1660,24 @@ Analyze for:
 6. 📖 Readability issues
 7. 🔄 Unhandled edge cases
 
-Each issue: Severity + explanation + code fix example.` },
+Each issue: Severity + explanation + code fix example.`,
+            promptTH:`รีวิว Code นี้อย่างละเอียด:
+
+[วาง code ที่นี่]
+
+วิเคราะห์:
+1. 🐛 Bug และ Logical Errors
+2. 🔒 Security Vulnerabilities
+3. ⚡ Performance Bottlenecks
+4. 🏗️ SOLID Principles
+5. 🧪 Testability และแนะนำ Tests
+6. 📖 Readability Issues
+7. 🔄 Edge Cases ที่ไม่ได้จัดการ
+
+แต่ละปัญหา: ระดับความรุนแรง + คำอธิบาย + ตัวอย่าง Code ที่แก้ไข` },
           { name:'Replit', emoji:'🔁', badge:'Cloud IDE', desc:'Build และ run code ในทันทีบน browser ไม่ต้องตั้งค่า local',
             url:'https://replit.com',
+            available:true,
             prompt:`I want to build [project/feature name] on Replit. Help me set up and implement it.
 
 Project Details:
@@ -1108,7 +1699,29 @@ Please provide:
 
 3. How to test it runs correctly on Replit
 
-4. Tips for sharing or deploying from Replit (Replit Deployments / public URL)` }
+4. Tips for sharing or deploying from Replit (Replit Deployments / public URL)`,
+            promptTH:`ต้องการสร้าง [ชื่อโปรเจกต์/feature] บน Replit ช่วยตั้งค่าและ Implement ให้
+
+Project Details:
+- Type: [web app / API / script / prototype]
+- Language: [Python / Node.js / ฯลฯ]
+- Framework: [Flask / Express / React / ฯลฯ]
+- Description: [สิ่งที่ทำ]
+
+ระบุ:
+1. วิธีตั้งค่า Replit Project
+   - Template ที่ควรเลือก
+   - Packages ที่ต้องติดตั้ง
+   - Environment Variables / Secrets ที่ต้องตั้งค่า
+
+2. Code หลักพร้อมรัน:
+   - ไฟล์หลัก
+   - Modules/Functions สำคัญ
+   - Config files ที่จำเป็น
+
+3. วิธีทดสอบว่ารันถูกต้องบน Replit
+
+4. Tips สำหรับ Share หรือ Deploy จาก Replit` }
         ]
       }
     ]
@@ -1122,7 +1735,8 @@ Please provide:
         detail:'เขียน test สำหรับ individual function/component ให้ครอบคลุม happy path และ edge cases',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'Generate unit tests ครอบคลุม >90% branch coverage',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Write comprehensive unit tests for the following code.
 
 \`\`\`[language]
@@ -1138,17 +1752,39 @@ Cover:
 4. Boundary values
 5. Mocked external dependencies
 
-Target: >90% branch coverage. Include comments explaining WHY each test exists.` },
+Target: >90% branch coverage. Include comments explaining WHY each test exists.`,
+            promptTH:`เขียน Unit Tests ที่ครอบคลุมสำหรับ Code ต่อไปนี้
+
+[วาง function/class]
+
+Framework: [Jest/Vitest/Pytest/ฯลฯ]
+
+ครอบคลุม:
+1. Happy Path (Input ปกติ)
+2. Edge Cases (ว่าง, null, ศูนย์, ค่าสูงสุด)
+3. Error Cases (Input ผิด, Exceptions)
+4. Boundary Values
+5. Mock External Dependencies
+
+เป้าหมาย: >90% Branch Coverage พร้อม Comment อธิบายว่าทำไมต้องมีแต่ละ Test` },
           { name:'GitHub Copilot', emoji:'🐙', badge:'Coding', desc:'Generate tests ตรงใน IDE ด้วย inline prompt',
             url:'https://github.com/features/copilot',
+            available:false,
             prompt:`// Generate unit tests for the function above
 // Framework: [Jest/Vitest/Pytest]
 // Cover: happy path, null inputs, edge cases, error throwing
 // Mock: [list dependencies to mock]
 // Target: 90%+ branch coverage
-// Include: beforeEach setup, afterEach cleanup, descriptive test names` },
+// Include: beforeEach setup, afterEach cleanup, descriptive test names`,
+            promptTH:`// สร้าง Unit Tests สำหรับ function ข้างต้น
+// Framework: [Jest/Vitest/Pytest]
+// ครอบคลุม: happy path, null inputs, edge cases, error throwing
+// Mock: [รายการ dependencies]
+// เป้าหมาย: 90%+ branch coverage
+// รวม: beforeEach setup, afterEach cleanup, descriptive test names` },
           { name:'Cursor AI', emoji:'⚡', badge:'IDE', desc:'Generate และ run unit tests ใน AI IDE',
             url:'https://cursor.sh',
+            available:false,
             prompt:`@codebase Generate comprehensive unit tests for [module/function name].
 
 Requirements:
@@ -1158,7 +1794,17 @@ Requirements:
 - Mock all external dependencies (DB, API, filesystem)
 - Add test data factories if needed
 
-Run the tests and fix any failures. Report final coverage percentage.` }
+Run the tests and fix any failures. Report final coverage percentage.`,
+            promptTH:`@codebase สร้าง Unit Tests ที่ครอบคลุมสำหรับ [module/function name]
+
+Requirements:
+- ตรวจจับ Testing Framework ที่ใช้อยู่ใน project อัตโนมัติ
+- ทำตาม naming convention ของ test files ที่มีอยู่
+- ครอบคลุมทุก exported functions และ edge cases
+- Mock ทุก external dependencies (DB, API, filesystem)
+- เพิ่ม test data factories ถ้าจำเป็น
+
+รัน tests และแก้ไข failures รายงาน % Coverage สุดท้าย` }
         ]
       },
       {
@@ -1167,6 +1813,7 @@ Run the tests and fix any failures. Report final coverage percentage.` }
         tools:[
           { name:'Playwright', emoji:'🎭', badge:'E2E', desc:'Generate E2E test scripts ครอบคลุม critical user flows',
             url:'https://playwright.dev',
+            available:false,
             prompt:`Generate Playwright TypeScript E2E tests for SIT phase.
 
 Application URL: [URL]
@@ -1186,9 +1833,30 @@ For each flow:
 Also generate:
 - Smoke test suite (top 5 must-pass scenarios)
 - Regression test suite tags
-- CI/CD integration config (run on every deploy)` },
+- CI/CD integration config (run on every deploy)`,
+            promptTH:`สร้าง Playwright TypeScript E2E Tests สำหรับ SIT Phase
+
+Application URL: [URL]
+Critical User Flows ที่ต้องทดสอบ:
+1. [flow 1 เช่น Login → สร้าง Order → Approve]
+2. [flow 2 เช่น Search → ดูรายละเอียด → Export]
+3. [flow 3]
+
+สำหรับแต่ละ Flow:
+- ใช้ data-testid selectors
+- Assert ทุก Critical Step
+- จัดการ Loading/Async states
+- Capture Screenshot เมื่อ Failure
+- ใช้ Page Object Model pattern
+- ตั้งค่า Test Data ผ่าน API (ไม่ใช่ UI)
+
+สร้างเพิ่มเติม:
+- Smoke Test Suite (5 Scenarios ที่ต้องผ่านทุกครั้ง)
+- Tags สำหรับ Regression Tests
+- CI/CD Integration Config` },
           { name:'Postman', emoji:'📮', badge:'API Testing', desc:'สร้าง integration test collection สำหรับ API flows',
             url:'https://postman.com',
+            available:false,
             prompt:`Create a Postman collection for API integration testing.
 
 API Base URL: [URL]
@@ -1207,9 +1875,29 @@ For each request include:
 Also include:
 - Performance threshold tests (response < [X]ms)
 - Negative test cases (401, 404, 400, 500)
-- Collection runner config for CI/CD` },
+- Collection runner config for CI/CD`,
+            promptTH:`สร้าง Postman Collection สำหรับ API Integration Testing
+
+API Base URL: [URL]
+Auth Method: [Bearer token / API Key / OAuth]
+
+ทดสอบ Integration Scenarios ต่อไปนี้:
+1. [scenario 1 เช่น สร้าง resource → อ่านกลับ → ยืนยันข้อมูล]
+2. [scenario 2 เช่น Trigger webhook → ยืนยันระบบ Downstream]
+3. [scenario 3 เช่น Error handling — input ผิด → error response ที่ถูกต้อง]
+
+สำหรับแต่ละ Request:
+- Pre-request script (ตั้งค่า variables, auth)
+- Test assertions (status, schema, response time, business logic)
+- Chain tests ด้วย environment variables
+
+รวม:
+- Performance threshold tests
+- Negative test cases (401, 404, 400, 500)
+- Collection runner config สำหรับ CI/CD` },
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง SIT test plan และ defect tracking template',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Create a comprehensive SIT (System Integration Testing) plan.
 
 System Overview: [อธิบาย system และ integrations]
@@ -1226,9 +1914,27 @@ Provide:
 6. Entry/Exit criteria for SIT phase
 7. Defect severity classification guide
 8. Defect report template
-9. SIT sign-off checklist` },
+9. SIT sign-off checklist`,
+            promptTH:`สร้าง SIT (System Integration Testing) Plan ที่ครอบคลุม
+
+System Overview: [อธิบาย system และ integrations]
+Integration Points: [รายการการเชื่อมต่อระบบ]
+SIT Environment: [อธิบายสภาพแวดล้อมทดสอบ]
+Team: [testers, developers, DevOps]
+
+ระบุ:
+1. ขอบเขต SIT — สิ่งที่ทดสอบและไม่ทดสอบ
+2. Integration Test Scenarios ตาม Interface/API
+3. E2E Business Flow Test Cases (happy + negative paths)
+4. Performance Test Scenarios พร้อม SLA thresholds
+5. ความต้องการข้อมูลทดสอบและวิธีตั้งค่า
+6. Entry/Exit Criteria สำหรับ SIT Phase
+7. แนวทางจำแนกความรุนแรงของ Defect
+8. Defect Report Template
+9. SIT Sign-off Checklist` },
           { name:'k6', emoji:'⚡', badge:'Performance', desc:'Load test scripts พร้อม SLA thresholds',
             url:'https://k6.io',
+            available:false,
             prompt:`Create a k6 performance test script for SIT phase.
 
 Target endpoints:
@@ -1247,43 +1953,130 @@ Test stages:
 3. Spike test: sudden 2x load for 2 minutes
 4. Ramp-down: back to 0
 
-Include: custom thresholds, response validation, business metric tracking, HTML result summary.` }
+Include: custom thresholds, response validation, business metric tracking, HTML result summary.`,
+            promptTH:`สร้าง k6 Performance Test Script สำหรับ SIT Phase
+
+Target endpoints:
+- [endpoint 1]: [คำอธิบาย]
+- [endpoint 2]: [คำอธิบาย]
+
+SLA Requirements:
+- P95 Response Time: < [X]ms
+- P99 Response Time: < [X]ms
+- Throughput: [X] requests/sec
+- Error Rate: < [X]%
+
+Test stages:
+1. Ramp-up: 0 → [peak] users ใน [X] นาที
+2. Sustained load: [peak] users นาน [X] นาที
+3. Spike test: Load 2x ทันทีนาน 2 นาที
+4. Ramp-down: กลับสู่ 0
+
+รวม: custom thresholds, response validation, business metric tracking, HTML result summary` }
         ]
       },
       {
         title:'UAT (User Acceptance Testing)',
         detail:'ให้ business users ทดสอบ real scenarios และ sign-off ก่อน go-live',
         tools:[
-          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง UAT scripts ภาษาธรรมดาสำหรับ business users',
-            url:'https://claude.ai',
-            prompt:`Create a complete UAT (User Acceptance Testing) package for business users.
+          { name:'Claude', emoji:'✨', badge:'General AI', desc:'วิเคราะห์ภาพหน้าจอ UI และสร้าง UAT Scenario Table พร้อมใช้',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
+            prompt:`Role: You are a Senior Software QA Engineer and Business Analyst, expert in system design and software testing.
 
-Features in Scope: [list features]
-User Roles Involved: [list roles e.g. Finance Manager, Sales Rep]
-Go-Live Date: [date]
-UAT Window: [start date → end date]
+Task: Analyze the attached application screenshot and create a UAT (User Acceptance Testing) Scenario in Table format, ready to use.
+Focus on testing based on Business Process and real End-user perspective to ensure the system meets business goals — not just bug-free functions, but truly "usable in practice."
 
-Deliverables:
-1. UAT Test Scripts (plain language, no technical jargon)
-   - Each script: Scenario title, preconditions, numbered steps, expected result
-   - Include: happy path + common error scenarios
+Instructions:
 
-2. Test Data Preparation Guide
-   - What data to set up before testing
-   - Sample data values to use
+1. Analyze UI Elements: Examine all elements in the image, including:
+   - Input areas: text fields, dropdowns, date pickers
+   - Action buttons and controls
+   - Output areas: data grids, tables, dashboards
 
-3. Bug Report Template
-   - Fields: scenario ID, steps to reproduce, expected vs actual, screenshot slot, severity
+2. Design Scenarios covering real End-to-End Workflows, divided into:
+   - Positive Cases: correct operations under normal conditions
+   - Negative Cases: handling incorrect input or system errors (Error Handling)
+   - Business Logic: data validation and access permission verification
 
-4. UAT Tracking Sheet structure
-   - Columns: Scenario ID | Tester | Date | Status (Pass/Fail/Blocked) | Comments
+3. Output Format: Display as a Markdown Table (easy to copy into Excel) with columns:
+   | Test Case ID | Test Scenario | Test Steps | Expected Result | Priority (High/Medium/Low) |
 
-5. Go/No-Go Decision Checklist
-   - Criteria that must be met before sign-off
+4. Language: English (keep technical terms and on-screen labels as-is)
 
-6. Sign-Off Document Template` },
+[Please attach the application screenshot here]
+
+---
+
+Role: คุณคือ Senior Software QA Engineer และ Business Analyst ผู้เชี่ยวชาญด้านการออกแบบระบบและทดสอบซอฟต์แวร์
+
+Task: ช่วยวิเคราะห์ภาพหน้าจอ Application ที่แนบมานี้ และจัดทำ UAT (User Acceptance Testing) Scenario ในรูปแบบตาราง (Table) ที่พร้อมนำไปใช้งาน
+จะเน้นไปที่การทดสอบตาม Business Process หรือมุมมองการใช้งานจริงของผู้ใช้ (End-user) เพื่อให้มั่นใจว่าระบบทำงานได้ตรงตามเป้าหมายทางธุรกิจ ไม่ใช่แค่ฟังก์ชันไม่บั๊ก แต่ต้อง "ใช้งานได้จริง"
+
+Instructions:
+
+1. Analyze UI Elements: ตรวจสอบองค์ประกอบในรูปภาพ ทั้งส่วน Input (ช่องกรอกข้อมูล, Dropdown, Date Picker), ปุ่ม Action ต่างๆ, และส่วนแสดงผล (Data Grid, Table, Dashboard)
+
+2. Design Scenarios: สร้างสถานการณ์การทดสอบที่ครอบคลุมการใช้งานจริงของ User (End-to-End Workflow) โดยแบ่งเป็น:
+   - Positive Cases: การทำงานที่ถูกต้องตามเงื่อนไขปกติ
+   - Negative Cases: การจัดการเมื่อกรอกข้อมูลผิด หรือระบบเกิดข้อผิดพลาด (Error Handling)
+   - Business Logic: การตรวจสอบความถูกต้องของข้อมูลและสิทธิ์การเข้าใช้งาน
+
+3. Output Format: แสดงผลเป็น Markdown Table เพื่อให้ Copy ไปวางใน Excel ได้ง่าย โดยมีคอลัมน์ดังนี้:
+   | Test Case ID | Test Scenario (สถานการณ์การทดสอบ) | Test Steps (ขั้นตอนการทดสอบ) | Expected Result (ผลลัพธ์ที่คาดหวัง) | Priority (High/Medium/Low) |
+
+4. Language: ใช้ภาษาไทย (คงคำศัพท์ Technical ที่ปรากฏบนหน้าจอเป็นภาษาอังกฤษ)
+
+[กรุณาแนบรูปภาพหน้าจอระบบที่ต้องการทดสอบที่นี่]`,
+            promptTH:`Role: You are a Senior Software QA Engineer and Business Analyst, expert in system design and software testing.
+
+Task: Analyze the attached application screenshot and create a UAT (User Acceptance Testing) Scenario in Table format, ready to use.
+Focus on testing based on Business Process and real End-user perspective to ensure the system meets business goals — not just bug-free functions, but truly "usable in practice."
+
+Instructions:
+
+1. Analyze UI Elements: Examine all elements in the image, including:
+   - Input areas: text fields, dropdowns, date pickers
+   - Action buttons and controls
+   - Output areas: data grids, tables, dashboards
+
+2. Design Scenarios covering real End-to-End Workflows, divided into:
+   - Positive Cases: correct operations under normal conditions
+   - Negative Cases: handling incorrect input or system errors (Error Handling)
+   - Business Logic: data validation and access permission verification
+
+3. Output Format: Display as a Markdown Table (easy to copy into Excel) with columns:
+   | Test Case ID | Test Scenario | Test Steps | Expected Result | Priority (High/Medium/Low) |
+
+4. Language: English (keep technical terms and on-screen labels as-is)
+
+[Please attach the application screenshot here]
+
+---
+
+Role: คุณคือ Senior Software QA Engineer และ Business Analyst ผู้เชี่ยวชาญด้านการออกแบบระบบและทดสอบซอฟต์แวร์
+
+Task: ช่วยวิเคราะห์ภาพหน้าจอ Application ที่แนบมานี้ และจัดทำ UAT (User Acceptance Testing) Scenario ในรูปแบบตาราง (Table) ที่พร้อมนำไปใช้งาน
+จะเน้นไปที่การทดสอบตาม Business Process หรือมุมมองการใช้งานจริงของผู้ใช้ (End-user) เพื่อให้มั่นใจว่าระบบทำงานได้ตรงตามเป้าหมายทางธุรกิจ ไม่ใช่แค่ฟังก์ชันไม่บั๊ก แต่ต้อง "ใช้งานได้จริง"
+
+Instructions:
+
+1. Analyze UI Elements: ตรวจสอบองค์ประกอบในรูปภาพ ทั้งส่วน Input (ช่องกรอกข้อมูล, Dropdown, Date Picker), ปุ่ม Action ต่างๆ, และส่วนแสดงผล (Data Grid, Table, Dashboard)
+
+2. Design Scenarios: สร้างสถานการณ์การทดสอบที่ครอบคลุมการใช้งานจริงของ User (End-to-End Workflow) โดยแบ่งเป็น:
+   - Positive Cases: การทำงานที่ถูกต้องตามเงื่อนไขปกติ
+   - Negative Cases: การจัดการเมื่อกรอกข้อมูลผิด หรือระบบเกิดข้อผิดพลาด (Error Handling)
+   - Business Logic: การตรวจสอบความถูกต้องของข้อมูลและสิทธิ์การเข้าใช้งาน
+
+3. Output Format: แสดงผลเป็น Markdown Table เพื่อให้ Copy ไปวางใน Excel ได้ง่าย โดยมีคอลัมน์ดังนี้:
+   | Test Case ID | Test Scenario (สถานการณ์การทดสอบ) | Test Steps (ขั้นตอนการทดสอบ) | Expected Result (ผลลัพธ์ที่คาดหวัง) | Priority (High/Medium/Low) |
+
+4. Language: ใช้ภาษาไทย (คงคำศัพท์ Technical ที่ปรากฏบนหน้าจอเป็นภาษาอังกฤษ)
+
+[กรุณาแนบรูปภาพหน้าจอระบบที่ต้องการทดสอบที่นี่]` },
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง UAT communication plan และ stakeholder emails',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Draft all communication needed for the UAT phase.
 
 Project: [ชื่อโปรเจกต์]
@@ -1299,7 +2092,23 @@ Draft the following emails/messages:
 4. UAT Completion & Sign-off Request
 5. Go-Live Announcement (for after successful UAT)
 
-Tone: professional but friendly. Include placeholders for dynamic content.` }
+Tone: professional but friendly. Include placeholders for dynamic content.`,
+            promptTH:`ร่าง Communication ทั้งหมดที่จำเป็นสำหรับ UAT Phase
+
+Project: [ชื่อโปรเจกต์]
+UAT Start: [วันที่]
+UAT End: [วันที่]
+Go-Live: [วันที่]
+Participants: [รายชื่อ roles และ names]
+
+ร่าง Emails/Messages ต่อไปนี้:
+1. UAT Kick-off Invitation (รวม schedule, access info, objectives)
+2. Template Daily UAT Status Update
+3. แจ้งเตือน Defect Escalation (เมื่อพบ Bug ร้ายแรง)
+4. UAT Completion & Sign-off Request
+5. Go-Live Announcement (หลัง UAT ผ่าน)
+
+Tone: เป็นทางการแต่เป็นมิตร รวม placeholders สำหรับ dynamic content` }
         ]
       },
       {
@@ -1307,7 +2116,8 @@ Tone: professional but friendly. Include placeholders for dynamic content.` }
         detail:'ฝึกอบรม end users และ support team ให้พร้อมใช้งานระบบจริง',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง training plan, curriculum และ user manual',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Create a comprehensive training program for system rollout.
 
 System: [ชื่อระบบ]
@@ -1335,9 +2145,38 @@ Provide:
 
 6. Train-the-Trainer guide (for internal trainers)
 
-7. Training Completion Checklist (readiness criteria before go-live)` },
+7. Training Completion Checklist (readiness criteria before go-live)`,
+            promptTH:`สร้างโปรแกรม Training ที่ครอบคลุมสำหรับการ Rollout ระบบ
+
+System: [ชื่อระบบ]
+Go-Live Date: [วันที่]
+User Groups:
+- [กลุ่ม 1 เช่น End Users — 50 คน]
+- [กลุ่ม 2 เช่น Supervisors — 10 คน]
+- [กลุ่ม 3 เช่น IT Support — 5 คน]
+
+ระบุ:
+1. กลยุทธ์ Training (in-person / online / self-paced / blended)
+
+2. หลักสูตรต่อกลุ่มผู้ใช้:
+   - ชื่อ Module
+   - ระยะเวลา
+   - หัวข้อ
+   - แบบฝึกหัด Hands-on
+   - วิธีประเมินผล
+
+3. ตารางเวลา Training (ก่อน Go-Live)
+
+4. โครงสร้าง User Manual
+
+5. เนื้อหา Quick Reference Card (1 หน้าต่อ role)
+
+6. Train-the-Trainer Guide
+
+7. Training Completion Checklist` },
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง FAQ และ troubleshooting guide สำหรับ users',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Create end-user support materials for [system name].
 
 Target Users: [describe user type and technical level]
@@ -1356,9 +2195,29 @@ Generate:
 
 4. Glossary of system-specific terms
 
-Write at reading level appropriate for non-technical business users. Use simple, clear language.` },
+Write at reading level appropriate for non-technical business users. Use simple, clear language.`,
+            promptTH:`สร้างเอกสารช่วยเหลือ End-User สำหรับ [ชื่อระบบ]
+
+Target Users: [อธิบายประเภทผู้ใช้และระดับ Technical]
+กระบวนการหลักในระบบ: [รายการสิ่งหลักที่ผู้ใช้จะทำ]
+
+สร้าง:
+1. FAQ 20 ข้อพร้อมคำตอบชัดเจน (คาดการณ์จุดที่สับสนบ่อย)
+
+2. Troubleshooting Guide:
+   - Error message ที่พบบ่อย → ความหมาย → วิธีแก้
+   - ติดต่อใครถ้าแก้ไขเองไม่ได้
+
+3. How-To Guides Step-by-Step สำหรับ 5 งานหลัก:
+   - แต่ละข้อเป็น numbered steps ชัดเจน
+   - บอกสิ่งที่ต้องทำถ้าผิดพลาด
+
+4. Glossary คำศัพท์เฉพาะระบบ
+
+เขียนด้วยภาษาง่ายสำหรับผู้ใช้ที่ไม่มีพื้นฐาน Technical` },
           { name:'Notion AI', emoji:'📝', badge:'Productivity', desc:'สร้าง training knowledge base structure ใน Notion',
             url:'https://notion.so',
+            available:false,
             prompt:`Design a Notion knowledge base structure for system training and ongoing user support.
 
 System: [ชื่อระบบ]
@@ -1373,7 +2232,22 @@ Structure the Notion space with:
 6. 🎫 How to Get Help (support contacts, ticket process)
 7. 📣 Release Notes (version history)
 
-For each section: recommend page structure, properties, and view types.` }
+For each section: recommend page structure, properties, and view types.`,
+            promptTH:`ออกแบบโครงสร้าง Notion Knowledge Base สำหรับ Training และ User Support
+
+System: [ชื่อระบบ]
+User Groups: [รายชื่อ]
+
+จัดโครงสร้าง Notion Space ด้วย:
+1. 🏠 Home Dashboard (links ด่วน, ประกาศ, นับถอยหลัง Go-Live)
+2. 📚 Training Materials (จัดตาม role/module)
+3. 📖 User Manuals (ค้นหาได้ พร้อม table of contents)
+4. ❓ FAQ (กรองได้ตาม topic)
+5. 🐛 Known Issues & Workarounds (ติดตามสถานะ)
+6. 🎫 วิธีขอความช่วยเหลือ (ช่องทาง support, กระบวนการ ticket)
+7. 📣 Release Notes (ประวัติเวอร์ชัน)
+
+แนะนำ database properties, relations, และ views ที่เหมาะสมแต่ละส่วน` }
         ]
       },
       {
@@ -1381,7 +2255,8 @@ For each section: recommend page structure, properties, and view types.` }
         detail:'แปลง ทำความสะอาด และ migrate ข้อมูลจาก legacy system เข้า new system',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง data migration plan และ validation strategy',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Create a comprehensive data conversion and migration plan.
 
 Source System: [ชื่อ legacy system]
@@ -1413,9 +2288,42 @@ Provide:
 
 5. Migration Runbook (step-by-step execution plan)
 
-6. Post-migration sign-off checklist` },
+6. Post-migration sign-off checklist`,
+            promptTH:`สร้าง Data Conversion และ Migration Plan ที่ครอบคลุม
+
+Source System: [ชื่อ legacy system]
+Target System: [ชื่อ new system]
+Data Scope: [รายการ data entities ที่ migrate เช่น Customers, Orders, Products]
+Estimated Volume: [rows ต่อ entity]
+Migration Window: [Downtime ที่ยอมได้ หรือ Zero-downtime]
+
+ระบุ:
+1. Data Inventory & Mapping
+   - Source field → Target field mapping
+   - การแปลง Data Type
+   - ค่า Default สำหรับ fields ใหม่
+
+2. Data Quality Assessment Checklist
+   - การตรวจสอบความครบถ้วน
+   - การตรวจจับ Duplicate
+   - กฎการ Standardize Format
+
+3. Migration Approach
+   - Big bang vs phased vs parallel run
+   - ETL process (Extract → Transform → Load)
+
+4. Validation Plan
+   - การนับ Record
+   - วิธี Spot-check ตัวอย่าง
+   - Business Rule Validation
+   - เกณฑ์ Rollback
+
+5. Migration Runbook
+
+6. Post-migration Sign-off Checklist` },
           { name:'ChatGPT', emoji:'🤖', badge:'General AI', desc:'สร้าง data mapping template และ transformation rules',
-            url:'https://chat.openai.com',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Help me create data mapping and transformation rules for migration.
 
 Source: [legacy system / file format e.g. CSV, Oracle DB]
@@ -1435,7 +2343,27 @@ For each field provide:
 5. Handling null/empty source values
 6. Data validation rule (regex, range, allowed values)
 
-Flag any fields that cannot be automatically mapped and need manual review.` }
+Flag any fields that cannot be automatically mapped and need manual review.`,
+            promptTH:`ช่วยสร้าง Data Mapping และกฎการ Transformation สำหรับ Migration
+
+Source: [legacy system / file format เช่น CSV, Oracle DB]
+Target: [new system / database]
+
+Source Data Sample:
+[วาง sample data หรือ field list]
+
+Target Schema:
+[วาง target table/field definitions]
+
+สำหรับแต่ละ field ระบุ:
+1. ชื่อและประเภท field ต้นทาง
+2. ชื่อและประเภท field ปลายทาง
+3. กฎการ Transform (direct map / concatenate / split / lookup / calculate / default)
+4. ตัวอย่าง: ค่าต้นทาง → ค่าหลัง Transform
+5. วิธีจัดการค่า null/empty
+6. กฎ Data Validation (regex, range, ค่าที่อนุญาต)
+
+ระบุ fields ที่ไม่สามารถ Map อัตโนมัติได้และต้องตรวจสอบด้วยมือ` }
         ]
       },
     ]
@@ -1449,7 +2377,8 @@ Flag any fields that cannot be automatically mapped and need manual review.` }
         detail:'วางแผน cutover window, owner ของแต่ละ task, dependencies และ rollback decisions',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง cutover plan พร้อม owner, dependencies และ fallback decisions',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Create a detailed minute-by-minute cutover plan for go-live.
 
 System: [ชื่อระบบ]
@@ -1480,9 +2409,39 @@ Deliverables:
 
 5. Hypercare Schedule (first 48 hours post go-live)
    - On-call roster with shifts
-   - Issue triage process` },
+   - Issue triage process`,
+            promptTH:`สร้าง Cutover Plan โดยละเอียดแบบ minute-by-minute
+
+System: [ชื่อระบบ]
+Go-Live Date & Time: [วันที่และเวลา]
+Cutover Window: [เช่น ศุกร์ 22:00 — เสาร์ 06:00]
+Rollback Deadline: [เวลาสุดท้ายที่ยกเลิกได้]
+Team Members: [รายชื่อและ role]
+
+ส่งมอบ:
+
+1. Cutover Runbook (ตาราง T-minus timeline)
+   Columns: เวลา | Task | เจ้าของ | ระยะเวลา | ขึ้นอยู่กับ | สถานะ | หมายเหตุ
+   ครอบคลุม: Pre-cutover Freeze → Data Migration → Switch → Smoke Test → Go/No-Go
+
+2. จุด Go/No-Go Decision
+   - เกณฑ์สำหรับดำเนินการต่อ
+   - ใครมีอำนาจตัดสินใจ
+
+3. Rollback Plan
+   - เกณฑ์ที่ต้อง Rollback (threshold ที่ชัดเจน)
+   - ขั้นตอน Rollback พร้อมเจ้าของ
+   - Script การสื่อสารถ้า Rollback
+
+4. Communication Plan
+   - ใครรับแจ้งที่แต่ละ Milestone
+   - ตารางอัปเดตระหว่าง Cutover คืน
+   - ผู้ติดต่อ Escalation
+
+5. Hypercare Schedule (48 ชั่วโมงแรกหลัง Go-Live)` },
           { name:'Notion AI', emoji:'📝', badge:'Workspace', desc:'ทำ cutover checklist page ที่ทุกคนเห็นสถานะเดียวกัน',
             url:'https://notion.so',
+            available:false,
             prompt:`Create a Notion cutover tracking page that the whole team can use in real-time during go-live night.
 
 Cutover Tasks:
@@ -1507,7 +2466,32 @@ Design a Notion page with:
 4. 📞 Contact Directory
    - Role, Name, Phone, Responsibility
 
-Format each section with recommended Notion block types and properties.` }
+Format each section with recommended Notion block types and properties.`,
+            promptTH:`สร้าง Notion Cutover Tracking Page สำหรับทีมใช้ Real-time ระหว่างคืน Go-Live
+
+Cutover Tasks:
+[วาง list of cutover tasks จาก runbook]
+
+Team Members: [รายชื่อและ roles]
+
+ออกแบบ Notion Page ด้วย:
+1. ✅ Cutover Checklist Database
+   - Properties: ชื่อ Task, เจ้าของ, เวลาเริ่ม, เวลาเสร็จ, สถานะ (Not Started/In Progress/Done/Blocked), หมายเหตุ
+   - จัดกลุ่มตาม Phase (Pre-Cutover / Migration / Switch / Verification / Done)
+   - Checkbox แต่ละรายการ
+
+2. 🔴 Issues Log
+   - Fields: ปัญหา, ความรุนแรง, ผู้แจ้ง, เวลา, การแก้ไข, สถานะ
+
+3. 📊 Live Status Banner
+   - ตัวบอก Phase ปัจจุบัน
+   - สถานะ Go/No-Go
+   - หมายเหตุ Deadline Rollback
+
+4. 📞 Contact Directory
+   - Role, ชื่อ, โทรศัพท์, ความรับผิดชอบ
+
+จัดรูปแบบแต่ละส่วนด้วย Notion block types และ properties ที่แนะนำ` }
         ]
       },
       {
@@ -1515,7 +2499,8 @@ Format each section with recommended Notion block types and properties.` }
         detail:'ตรวจสอบความพร้อมทุกมิติก่อน cutover — requirement, data, UAT, training, infra',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง go-live readiness checklist ครอบ requirement/data/UAT/training',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Create a comprehensive Go-Live Readiness Review checklist covering all dimensions.
 
 Project: [ชื่อโปรเจกต์]
@@ -1565,9 +2550,55 @@ Generate a readiness checklist organized by track:
 - Stakeholder notification list ready
 - Rollback communication template prepared
 
-For each item: Status column (✅ Done / ⚠️ At Risk / ❌ Not Done), Owner, and Notes.` },
+For each item: Status column (✅ Done / ⚠️ At Risk / ❌ Not Done), Owner, and Notes.`,
+            promptTH:`สร้าง Go-Live Readiness Review Checklist ครอบคลุมทุกมิติ
+
+Project: [ชื่อโปรเจกต์]
+Go-Live Date: [วันที่]
+System Type: [ERP / Web App / Mobile / Integration]
+
+สร้าง Checklist จัดตาม Track:
+
+## 1. Functional Readiness
+- Requirements ที่ต้องมีทั้งหมดส่งมอบและทดสอบแล้ว
+- สถานะ Defects ที่ยังค้างอยู่ (ไม่มี Critical/High ค้าง)
+- UAT Sign-off จากทุก Stakeholder groups
+
+## 2. Data Readiness
+- Data Migration เสร็จและ Validate แล้ว
+- การนับ Record (Source vs Target)
+- Spot-check คุณภาพข้อมูลผ่าน
+- Master Data ยืนยันแล้ว (Users, โครงสร้างองค์กร, Config)
+
+## 3. Technical & Infrastructure Readiness
+- Production Environment พร้อม
+- ผล Performance Test ผ่าน SLA
+- Security Scan เสร็จ (ไม่มี Critical findings)
+- Backup และ Recovery ยืนยันแล้ว
+
+## 4. Integration Readiness
+- Integration ทุกจุดทดสอบ End-to-End แล้ว
+- API Keys และ Credentials ตั้งค่าใน Production
+- Error Handling และ Retry Logic ยืนยันแล้ว
+
+## 5. Training & User Readiness
+- อัตราการเข้า Training ต่อ role (เป้าหมาย %)
+- User Accounts สร้างและยืนยัน Access
+- Quick Reference Guides แจกจ่ายแล้ว
+
+## 6. Support Readiness
+- Hypercare Team พร้อม
+- Help Desk ฝึกอบรมแล้ว
+- Escalation Path กำหนดชัดเจน
+
+## 7. Communication Readiness
+- ประกาศ Go-Live เตรียมพร้อม
+- รายชื่อ Stakeholder พร้อมแจ้ง
+
+แต่ละรายการ: คอลัมน์สถานะ (✅ Done / ⚠️ At Risk / ❌ Not Done), เจ้าของ, หมายเหตุ` },
           { name:'Miro', emoji:'🗺️', badge:'Workshop', desc:'ใช้ทำ readiness review board และระดมปัญหาสุดท้ายก่อน cutover',
             url:'https://miro.com',
+            available:false,
             prompt:`Design a Go-Live Readiness Review workshop board for Miro.
 
 Team: [BA, Dev, QA, DevOps, Business, Support]
@@ -1595,7 +2626,35 @@ Design the board with these sections:
 5. 📋 Action Items Tracker
    - Who | What | By When | Done?
 
-Describe layout, sticky note colors, and facilitation flow for the workshop.` }
+Describe layout, sticky note colors, and facilitation flow for the workshop.`,
+            promptTH:`ออกแบบ Go-Live Readiness Review Workshop Board สำหรับ Miro
+
+Team: [BA, Dev, QA, DevOps, Business, Support]
+เวลา: [เช่น Workshop 2 ชั่วโมง]
+
+ออกแบบ Board ด้วยส่วนเหล่านี้:
+
+1. 🟢🟡🔴 Readiness Traffic Light
+   - Columns: Track | เจ้าของ | สถานะ | Blocker | Action ที่ต้องการ
+   - Tracks: Functional / Data / Technical / Integration / Training / Support
+   - แต่ละทีมอัปเดต Row ของตัวเองแบบ Real-time
+
+2. 🚨 Open Issues Parking Lot
+   - Sticky Notes: ปัญหา | ความรุนแรง | เจ้าของ | กำหนดแก้ไข
+   - เรียงตามความรุนแรง (Critical ก่อน)
+
+3. 🤔 Risks & Concerns Wall
+   - Sticky Notes익명สำหรับให้ทีมแสดงความกังวล
+   - Dot voting เพื่อ Priority
+
+4. ✅ Go / 🔄 Delay / ❌ No-Go Vote
+   - แต่ละ Team Lead วาง Vote Card
+   - พื้นที่สำหรับเงื่อนไข (go-with-conditions)
+
+5. 📋 Action Items Tracker
+   - ใคร | ทำอะไร | ภายใน | เสร็จแล้ว?
+
+อธิบาย Layout, สีของ Sticky Notes, และขั้นตอน Facilitation` }
         ]
       },
       {
@@ -1603,7 +2662,8 @@ Describe layout, sticky note colors, and facilitation flow for the workshop.` }
         detail:'ดำเนิน cutover จริง, smoke test, and flip traffic ไป production',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง go-live day playbook และ smoke test checklist',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Create a Go-Live Day execution playbook.
 
 System: [ชื่อระบบ]
@@ -1634,9 +2694,41 @@ Provide:
    - "We are experiencing issues" holding message
    - "Issue resolved" update
 
-5. End-of-Day Status Report template for stakeholders` },
+5. End-of-Day Status Report template for stakeholders`,
+            promptTH:`สร้าง Go-Live Day Execution Playbook
+
+System: [ชื่อระบบ]
+Go-Live Date: [วันที่]
+Key Contacts: [ชื่อและ roles]
+
+ระบุ:
+
+1. ตารางรายชั่วโมง Go-Live Day
+   - การตรวจสอบก่อนเปิดให้ผู้ใช้
+   - Window เปิด User Access
+   - การยืนยัน Transaction แรก
+   - ตารางการ Monitor ต่อเนื่อง
+
+2. Smoke Test Checklist (รันทันทีหลัง Go-Live)
+   - 10 Critical Paths สำคัญ (steps เฉพาะ + ผลลัพธ์ที่คาดหวัง)
+   - ใครรันแต่ละ test
+   - เกณฑ์ผ่าน/ไม่ผ่าน
+   - ขั้นตอนถ้า Smoke Test ไม่ผ่าน
+
+3. First Hour Monitoring Checklist
+   - Metrics ที่ต้องดู
+   - KPIs ทางธุรกิจที่ต้องยืนยัน
+   - Error Rate Threshold ที่ต้อง Escalate
+
+4. User Communication Templates
+   - "ระบบเปิดใช้งานแล้ว"
+   - "กำลังพบปัญหา" (holding message)
+   - "ปัญหาได้รับการแก้ไขแล้ว"
+
+5. Template รายงานสถานะปลายวันสำหรับ Stakeholders` },
           { name:'Datadog AI', emoji:'📊', badge:'Monitoring', desc:'ตั้งค่า hypercare monitoring dashboard สำหรับ go-live',
             url:'https://datadoghq.com',
+            available:false,
             prompt:`Create a Go-Live hypercare monitoring setup in Datadog.
 
 Application: [app name]
@@ -1661,7 +2753,32 @@ Provide:
 
 4. Steady-state alert thresholds (activate after 2 weeks)
 
-5. Go-Live incident response runbook (top 5 failure scenarios)` }
+5. Go-Live incident response runbook (top 5 failure scenarios)`,
+            promptTH:`สร้าง Hypercare Monitoring Setup ใน Datadog สำหรับ Go-Live
+
+Application: [ชื่อ app]
+Go-Live Date: [วันที่]
+Critical Flows: [เช่น login, สร้าง order, payment]
+SLA: Uptime 99.9%, P95 < [X]ms, Error Rate < [X]%
+
+ระบุ:
+1. Hypercare Dashboard Layout (48 ชั่วโมงแรก)
+   - Error Rate Widget แบบ Real-time
+   - P95/P99 Latency ต่อ endpoint
+   - จำนวน Active Users
+   - Transaction Counter ทางธุรกิจ
+   - Infrastructure Health
+
+2. Hypercare Alert Rules (sensitive กว่า steady-state)
+   - Warning: error rate > 0.5% นาน 2 นาที
+   - Critical: error rate > 1% นาน 1 นาที → Page on-call
+   - Latency: P95 > 300ms นาน 5 นาที → Warning
+
+3. Alert routing (ใครรับแจ้งแต่ละระดับ)
+
+4. Steady-state alert thresholds (หลัง 2 สัปดาห์)
+
+5. Go-Live Incident Response Runbook (5 failure scenarios หลัก)` }
         ]
       },
       {
@@ -1669,7 +2786,8 @@ Provide:
         detail:'สนับสนุน users อย่างเข้มข้นช่วง 2-4 สัปดาห์แรก และ resolve ปัญหาที่เกิดขึ้น',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง hypercare support plan และ issue triage process',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Create a Hypercare Support Plan for the first 4 weeks post go-live.
 
 System: [ชื่อระบบ]
@@ -1700,9 +2818,39 @@ Provide:
 
 5. Hypercare Exit Criteria
    - Metrics that signal readiness to exit hypercare
-   - Sign-off process` },
+   - Sign-off process`,
+            promptTH:`สร้าง Hypercare Support Plan สำหรับ 4 สัปดาห์แรกหลัง Go-Live
+
+System: [ชื่อระบบ]
+User Base: [จำนวนและประเภทผู้ใช้]
+Support Team: [สมาชิกและความพร้อม]
+Business Hours: [เช่น จันทร์-ศุกร์ 08:00-18:00]
+
+ระบุ:
+
+1. Hypercare Phases
+   - สัปดาห์ 1: เข้มข้น (Support ประจำสถานที่/ชั่วโมงเฉพาะ)
+   - สัปดาห์ 2: Active (SLA ตอบสนองเร็ว)
+   - สัปดาห์ 3-4: Transition (ส่งมอบสู่ Support ปกติ)
+
+2. กระบวนการ Issue Triage & Escalation
+   - การจำแนกความรุนแรง (Critical/High/Medium/Low) พร้อมตัวอย่าง
+   - Response SLA ต่อระดับ
+   - เส้นทาง Escalation (L1 → L2 → Dev Team)
+   - เมื่อใดควร Rollback vs Workaround
+
+3. Agenda Daily Hypercare Standup
+   - ปัญหาที่แจ้งเมื่อวาน
+   - ปัญหาที่แก้ไขแล้ว
+   - ปัญหาที่ยังค้าง + เจ้าของ + ETA
+   - ความเสี่ยงของวันนี้
+
+4. Template Known Issues & Workaround Log
+
+5. Hypercare Exit Criteria` },
           { name:'Notion AI', emoji:'📝', badge:'Workspace', desc:'สร้าง post-launch issue tracker และ knowledge base',
             url:'https://notion.so',
+            available:false,
             prompt:`Create a Notion post-launch support hub for the hypercare period.
 
 Project: [ชื่อโปรเจกต์]
@@ -1727,7 +2875,31 @@ Design the following pages:
 5. 🏁 Hypercare Exit Checklist
    - Criteria to transition to steady-state support
 
-Recommend Notion database properties, relations, and views for each section.` }
+Recommend Notion database properties, relations, and views for each section.`,
+            promptTH:`สร้าง Notion Post-Launch Support Hub สำหรับ Hypercare Period
+
+Project: [ชื่อโปรเจกต์]
+Hypercare Period: [วันเริ่ม → วันสิ้นสุด]
+
+ออกแบบ Pages ต่อไปนี้:
+
+1. 🐛 Issue Tracker Database
+   - Properties: Issue ID, ชื่อ, ผู้แจ้ง, วันที่, ความรุนแรง, Module, สถานะ, ผู้รับผิดชอบ, Root Cause, การแก้ไข, มี Workaround
+   - Views: Kanban ตามสถานะ, ตารางตามความรุนแรง, กรองตาม Module
+
+2. 📖 Workaround Library
+   - คำอธิบายปัญหา + ขั้นตอน Workaround ชั่วคราว
+
+3. 📊 Daily Status Dashboard
+   - ปัญหาที่เปิดวันนี้ / แก้ไขวันนี้ / ทั้งหมดที่ค้างตามความรุนแรง
+
+4. 📣 User Communication Log
+   - สิ่งที่สื่อสาร, เมื่อไหร่, ถึงใคร, โดยใคร
+
+5. 🏁 Hypercare Exit Checklist
+   - เกณฑ์ Transition ไป Steady-state Support
+
+แนะนำ database properties, relations, และ views` }
         ]
       },
       {
@@ -1735,7 +2907,8 @@ Recommend Notion database properties, relations, and views for each section.` }
         detail:'จัดทำ retrospective, ส่งมอบระบบให้ support team และ document ทุกอย่างสำหรับอนาคต',
         tools:[
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง project retrospective และ lessons learned document',
-            url:'https://claude.ai',
+            url:'https://ginii-lab.scg.com/',
+            available:true,
             prompt:`Facilitate a project retrospective and create a Lessons Learned document.
 
 Project: [ชื่อโปรเจกต์]
@@ -1772,9 +2945,43 @@ Generate:
    - System architecture overview
    - Common issues and fixes
    - Vendor contacts
-   - SLA and escalation procedures` },
+   - SLA and escalation procedures`,
+            promptTH:`จัดทำ Project Retrospective และสร้าง Lessons Learned Document
+
+Project: [ชื่อโปรเจกต์]
+Duration: [วันเริ่ม → วันสิ้นสุด]
+Team: [รายชื่อ roles]
+
+สร้าง:
+
+1. Workshop Agenda Retrospective (2 ชั่วโมง)
+   - Check-in activity
+   - ทบทวน Timeline (เหตุการณ์สำคัญ, Milestones, Incidents)
+   - สิ่งที่ทำได้ดี (เฉลิมฉลอง)
+   - สิ่งที่ควรปรับปรุง (สะท้อนอย่างตรงไปตรงมา)
+   - Action Items สำหรับโปรเจกต์ถัดไป
+   - ปิดและขอบคุณ
+
+2. โครงสร้าง Lessons Learned Document
+   - ภาพรวมโปรเจกต์ & ผลลัพธ์จริง vs แผน
+   - สิ่งที่ทำได้ดี (พร้อมตัวอย่างจริง)
+   - สิ่งที่ควรปรับปรุง (พร้อม Root Cause และคำแนะนำ)
+   - ความเสี่ยงที่เกิดขึ้นจริง vs ที่ไม่เกิด
+   - คำแนะนำสำหรับโปรเจกต์ที่คล้ายกันในอนาคต
+   - การยกย่องทีม
+
+3. Project Closure Checklist
+   - ส่งมอบทุก Deliverable แล้ว
+   - เอกสารส่งมอบแล้ว
+   - ยกเลิก/โอน Access แล้ว
+   - SLA/Support Contract พร้อม
+   - ปิดการเงิน
+   - Team ได้รับการ reassign
+
+4. Knowledge Transfer Checklist สำหรับ Support Team` },
           { name:'Miro', emoji:'🗺️', badge:'Workshop', desc:'Retrospective board สำหรับ team workshop',
             url:'https://miro.com',
+            available:false,
             prompt:`Design a project retrospective board in Miro for a software go-live project team.
 
 Team Size: [number of people]
@@ -1800,7 +3007,33 @@ Create a Miro board with these sections:
 5. 🏆 Shoutouts & Recognition
    - Anonymous appreciation wall for team members
 
-Include facilitation timing and instructions for each section.` }
+Include facilitation timing and instructions for each section.`,
+            promptTH:`ออกแบบ Project Retrospective Board ใน Miro สำหรับทีม Software Go-Live
+
+จำนวนทีม: [จำนวนคน]
+ระยะเวลา Session: [เช่น 90 นาที]
+
+สร้าง Miro Board ด้วยส่วนเหล่านี้:
+
+1. 📅 Project Timeline
+   - Timeline แนวนอนพร้อม Sticky Notes สำหรับ Milestones, การตัดสินใจ, และ Incidents
+   - สีตามประเภท: เขียว = ช่วงเวลาดี, แดง = ช่วงเจ็บปวด, น้ำเงิน = จุดเปลี่ยน/บทเรียน
+
+2. 🌟 สิ่งที่ทำได้ดี
+   - Sticky Notes จัดกลุ่มตาม Theme
+   - Dot voting ไฮไลต์ความสำเร็จ
+
+3. 💡 สิ่งที่ควรปรับปรุง
+   - Sticky Notes: สิ่งที่เกิดขึ้น → ทำไม → สิ่งที่จะทำต่างออกไป
+   - จัดกลุ่มตาม Theme (Process / Tech / People / Communication)
+
+4. 🎯 Action Items สำหรับโปรเจกต์ถัดไป
+   - ใคร | ทำอะไร | หมวดหมู่
+
+5. 🏆 Shoutouts & Recognition
+   - กำแพงชื่นชมแบบไม่ระบุชื่อสำหรับสมาชิกทีม
+
+รวมเวลา Facilitation และคำแนะนำแต่ละส่วน` }
         ]
       }
     ]
@@ -1813,7 +3046,6 @@ let accentColor = '#E91E8C';
 let currentLang = 'en';
 let currentStepIdx = null;
 let currentToolIdx = null;
-const thCache = {};
 
 function init() {
   const row = document.getElementById('stagesRow');
@@ -1878,35 +3110,53 @@ function selectStep(idx) {
   const step = stages[activeStageIdx].steps[idx];
 
   const toolsCol = document.getElementById('toolsCol');
+  // Sort: available tools first, unavailable last
+  const sortedTools = [...step.tools].sort((a, b) => {
+    const aAvail = a.available !== false ? 0 : 1;
+    const bAvail = b.available !== false ? 0 : 1;
+    return aAvail - bAvail;
+  });
   toolsCol.innerHTML = `
     <div class="tools-header">
       <div class="tools-header-icon">🤖</div>
       <div>
         <div class="tools-header-name">${step.title}</div>
-        <div class="tools-header-sub">AI Tools สำหรับ step นี้ &nbsp;·&nbsp; ${step.tools.length} tools</div>
+        <div class="tools-header-sub">AI Tools สำหรับ step นี้ &nbsp;·&nbsp; ${step.tools.length} tools &nbsp;·&nbsp; <span style="color:#4ade80">💡 ${step.tools.filter(t=>t.available!==false).length} พร้อมใช้</span></div>
       </div>
     </div>
     <div class="tools-grid">
-      ${step.tools.map((tool, ti) => `
-        <div class="tool-card">
+      ${sortedTools.map((tool, ti) => {
+        const origIdx = step.tools.indexOf(tool);
+        const avail = tool.available !== false;
+        const cardClass = avail ? 'tool-card available' : 'tool-card unavailable';
+        const statusBadge = avail
+          ? `<span class="status-badge ready">💡 พร้อมใช้</span>`
+          : `<span class="status-badge not-ready">🔒 ยังไม่เปิด</span>`;
+        const btnDisabled = avail ? '' : 'disabled';
+        const promptDisabled = avail ? '' : 'disabled';
+        return `
+        <div class="${cardClass}">
           <div class="tool-top">
             <div class="tool-name-row">
               <span class="tool-emoji">${tool.emoji}</span>
               <span class="tool-name">${tool.name}</span>
             </div>
-            <span class="tool-badge">${tool.badge}</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${statusBadge}
+              <span class="tool-badge">${tool.badge}</span>
+            </div>
           </div>
           <div class="tool-desc">${tool.desc}</div>
           <div class="tool-actions">
-            <a href="${tool.url}" target="_blank" class="btn-link">🔗 เปิด Tool</a>
-            <button class="btn-prompt" onclick="openModal(${idx},${ti})">📋 ดู Prompt</button>
+            <a href="${tool.url}" target="_blank" class="btn-link ${btnDisabled}" ${avail ? '' : 'onclick="return false;" tabindex="-1"'}>🔗 เปิด Tool</a>
+            <button class="btn-prompt ${promptDisabled}" ${avail ? `onclick="openModal(${idx},${origIdx})"` : 'disabled'}>📋 ดู Prompt</button>
           </div>
-        </div>
-      `).join('')}
+        </div>`;
+      }).join('')}
     </div>`;
 }
 
-async function openModal(stepIdx, toolIdx) {
+function openModal(stepIdx, toolIdx) {
   const tool = stages[activeStageIdx].steps[stepIdx].tools[toolIdx];
   currentStepIdx = stepIdx;
   currentToolIdx = toolIdx;
@@ -1927,55 +3177,14 @@ async function openModal(stepIdx, toolIdx) {
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-async function showThPrompt(stepIdx, toolIdx, tool) {
-  const cacheKey = `${activeStageIdx}-${stepIdx}-${toolIdx}`;
+function showThPrompt(stepIdx, toolIdx, tool) {
   document.getElementById('modalSub').textContent = '🇹🇭 Prompt ภาษาไทย — copy ไปแปะกับ AI tool ได้เลย';
-
-  if (thCache[cacheKey]) {
-    document.getElementById('promptBox').textContent = thCache[cacheKey];
-    modalPromptText = thCache[cacheKey];
-    return;
-  }
-
-  document.getElementById('promptBox').innerHTML =
-    `<div class="translating"><div class="spin"></div>กำลังแปลเป็นภาษาไทย...</div>`;
-  document.getElementById('copyBtn').textContent = '⏳ กำลังแปล...';
-  document.getElementById('copyBtn').disabled = true;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        messages: [{
-          role: 'user',
-          content: `แปล prompt ต่อไปนี้เป็นภาษาไทยให้ครบถ้วนและเป็นธรรมชาติ คงความหมายเดิมทุกอย่าง รักษา structure (หัวข้อ, numbering, bullet) ให้เหมือนเดิม คำศัพท์เทคนิค industry standard (เช่น API, prompt, sprint, backlog, UX, SLA) ให้คงเป็นภาษาอังกฤษ ตอบเฉพาะ prompt ที่แปลแล้วเท่านั้น ไม่ต้องมีคำนำหรืออธิบาย:\n\n${tool.prompt}`
-        }]
-      })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const translated = data.content?.[0]?.text || tool.prompt;
-    thCache[cacheKey] = translated;
-    document.getElementById('promptBox').textContent = translated;
-    modalPromptText = translated;
-  } catch(e) {
-    console.error('Translation error:', e);
-    document.getElementById('promptBox').textContent = '⚠️ ไม่สามารถแปลได้ในขณะนี้ กรุณาลองใหม่\n\n' + tool.prompt;
-    modalPromptText = tool.prompt;
-  }
-
-  document.getElementById('copyBtn').textContent = '📋 Copy Prompt';
-  document.getElementById('copyBtn').disabled = false;
+  const thText = tool.promptTH || tool.prompt;
+  document.getElementById('promptBox').textContent = thText;
+  modalPromptText = thText;
 }
 
-async function switchLang(lang) {
+function switchLang(lang) {
   if (currentLang === lang || currentStepIdx === null) return;
   currentLang = lang;
 
@@ -1991,7 +3200,7 @@ async function switchLang(lang) {
     document.getElementById('copyBtn').textContent = '📋 Copy Prompt';
     document.getElementById('copyBtn').disabled = false;
   } else {
-    await showThPrompt(currentStepIdx, currentToolIdx, tool);
+    showThPrompt(currentStepIdx, currentToolIdx, tool);
   }
 }
 
@@ -2004,11 +3213,63 @@ function closeModal() {
 }
 
 function copyPrompt() {
-  navigator.clipboard.writeText(modalPromptText).then(() => {
-    const btn = document.getElementById('copyBtn');
-    btn.textContent = '✅ Copied!';
-    setTimeout(() => btn.textContent = '📋 Copy Prompt', 2000);
-  });
+  if (!modalPromptText) return;
+
+  const btn = document.getElementById('copyBtn');
+
+  function onSuccess() {
+    // Button state
+    btn.classList.add('copied');
+    btn.innerHTML = '✅ Copy สำเร็จแล้ว!';
+    btn.disabled = true;
+
+    // Toast
+    const toast = document.getElementById('copyToast');
+    toast.classList.add('show');
+
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '📋 Copy Prompt';
+      btn.disabled = false;
+      toast.classList.remove('show');
+    }, 2500);
+  }
+
+  function onFail() {
+    btn.innerHTML = '⚠️ กรุณา Ctrl+A แล้ว Ctrl+C ใน prompt box';
+    setTimeout(() => { btn.innerHTML = '📋 Copy Prompt'; }, 3000);
+  }
+
+  // Modern clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(modalPromptText)
+      .then(onSuccess)
+      .catch(() => {
+        // fallback for denied permission
+        fallbackCopy();
+      });
+  } else {
+    // Fallback: execCommand (works on file:// and older browsers)
+    fallbackCopy();
+  }
+
+  function fallbackCopy() {
+    const promptBox = document.getElementById('promptBox');
+    const range = document.createRange();
+    range.selectNodeContents(promptBox);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    try {
+      const ok = document.execCommand('copy');
+      sel.removeAllRanges();
+      if (ok) onSuccess();
+      else onFail();
+    } catch (e) {
+      sel.removeAllRanges();
+      onFail();
+    }
+  }
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
