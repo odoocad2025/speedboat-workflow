@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI-Powered Dev Workflow</title>
+<title>Project Workflow</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -404,7 +404,7 @@
 <div class="wrapper">
 
   <header>
-    <div class="eyebrow">Developer Workflow</div>
+    <div class="eyebrow">Project Workflow</div>
     <h1>Build Smarter with <span>AI Tools</span></h1>
     <p class="subtitle">เลือก Stage → เลือก Step → ดู AI Tools ที่ช่วยได้</p>
   </header>
@@ -674,50 +674,6 @@ Available Team: [สมาชิกทีมปัจจุบันและท
         title:'Kickoff Slide Deck',
         detail:'จัดทำ slide สำหรับ kickoff meeting ให้ทีมและ stakeholder เห็นภาพรวมและเริ่มต้นร่วมกัน',
         tools:[
-          { name:'Gamma', emoji:'⚡', badge:'Slide AI', desc:'Generate kickoff deck จาก outline ได้ในไม่กี่นาที พร้อม design สวยงาม',
-            url:'https://gamma.app',
-            available:true,
-            prompt:`Create a project kickoff presentation outline for Gamma.
-
-Project: [ชื่อโปรเจกต์]
-Audience: [เช่น Executive Sponsors, Project Team, Business Users]
-Duration: [e.g. 45-minute meeting]
-
-Slide outline:
-
-1. Title Slide — Project name, date, presenter
-2. Agenda — What we'll cover today
-3. Project Background & Why Now — Problem statement, business driver
-4. Project Objectives & Success Metrics — What we're trying to achieve and how we'll measure it
-5. Scope Overview — In scope / Out of scope (visual)
-6. High-Level Timeline — Phases and key milestones (visual roadmap)
-7. Team Structure — Roles, responsibilities, org chart
-8. Ways of Working — Meeting cadence, communication channels, decision process
-9. Key Risks & Mitigation — Top 3-5 risks
-10. What We Need From You — Asks to stakeholders
-11. Q&A + Next Steps
-
-For each slide: suggest the key message (1 sentence), main content points, and recommended visual type (chart / diagram / table / icon grid).`,
-            promptTH:`สร้าง outline สำหรับ Kickoff Presentation ใน Gamma
-
-Project: [ชื่อโปรเจกต์]
-Audience: [เช่น Executive Sponsors, Project Team]
-Duration: [เช่น 45 นาที]
-
-Slide outline:
-1. หน้าปก — ชื่อโครงการ, วันที่, ผู้นำเสนอ
-2. วาระการประชุม
-3. Background & เหตุผลที่ทำตอนนี้
-4. เป้าหมายและ Success Metrics
-5. ภาพรวม Scope (In/Out)
-6. Timeline ระดับสูง
-7. โครงสร้างทีม
-8. วิธีการทำงานร่วมกัน
-9. ความเสี่ยงหลักและการจัดการ
-10. สิ่งที่ต้องการจาก Stakeholders
-11. Q&A + Next Steps
-
-สำหรับแต่ละ Slide ระบุ: Key Message, จุดสำคัญ, และ Visual ที่แนะนำ` },
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'เขียน content ครบทุก slide พร้อม speaker notes',
             url:'https://ginii-lab.scg.com/',
             available:true,
@@ -1445,53 +1401,39 @@ Each issue: Severity + explanation + code fix example.`,
 7. 🔄 Edge Cases ที่ไม่ได้จัดการ
 
 แต่ละปัญหา: ระดับความรุนแรง + คำอธิบาย + ตัวอย่าง Code ที่แก้ไข` },
-          { name:'Replit', emoji:'🔁', badge:'Cloud IDE', desc:'Build และ run code ในทันทีบน browser ไม่ต้องตั้งค่า local',
-            url:'https://replit.com',
-            available:true,
-            prompt:`I want to build [project/feature name] on Replit. Help me set up and implement it.
+          { name:'Claude Code', emoji:'⌨️', badge:'CLI', desc:'AI coding agent สำหรับ terminal — code, debug และ iterate ด้วย Claude โดยตรง',
+            url:'https://docs.anthropic.com/en/docs/claude-code',
+            available:false,
+            prompt:`You are an expert software engineer using Claude Code CLI. Help me implement the following feature using Claude Code.
 
-Project Details:
-- Type: [web app / API / script / prototype]
-- Language: [Python / Node.js / etc.]
-- Framework: [Flask / Express / React / etc.]
-- Description: [what it does]
+Project: [ชื่อโปรเจกต์]
+Feature: [feature ที่ต้องการ implement]
+Tech Stack: [language/framework]
+Context: [background ที่เกี่ยวข้อง]
 
-Please provide:
-1. Replit project setup instructions
-   - Which Replit template to start with
-   - Required packages to add (requirements.txt or package.json)
-   - Environment variables / Secrets to configure
+Using Claude Code, help me:
+1. Understand the existing codebase structure
+2. Plan the implementation approach
+3. Generate the code files needed
+4. Run and verify the implementation
+5. Write tests for the new feature
 
-2. Core implementation code (ready to paste and run):
-   - Main entry file
-   - Key modules/functions
-   - Any config files needed
+Provide the Claude Code commands and prompts I should use to accomplish this efficiently.`,
+            promptTH:`คุณเป็น Software Engineer ผู้เชี่ยวชาญที่ใช้ Claude Code CLI ช่วย Implement feature ต่อไปนี้
 
-3. How to test it runs correctly on Replit
+Project: [ชื่อโปรเจกต์]
+Feature: [feature ที่ต้องการ implement]
+Tech Stack: [language/framework]
+Context: [background ที่เกี่ยวข้อง]
 
-4. Tips for sharing or deploying from Replit (Replit Deployments / public URL)`,
-            promptTH:`ต้องการสร้าง [ชื่อโปรเจกต์/feature] บน Replit ช่วยตั้งค่าและ Implement ให้
+ใช้ Claude Code เพื่อ:
+1. ทำความเข้าใจโครงสร้าง Codebase ที่มีอยู่
+2. วางแผนแนวทางการ Implement
+3. สร้าง Code files ที่จำเป็น
+4. รันและยืนยันการ Implement
+5. เขียน Tests สำหรับ feature ใหม่
 
-Project Details:
-- Type: [web app / API / script / prototype]
-- Language: [Python / Node.js / ฯลฯ]
-- Framework: [Flask / Express / React / ฯลฯ]
-- Description: [สิ่งที่ทำ]
-
-ระบุ:
-1. วิธีตั้งค่า Replit Project
-   - Template ที่ควรเลือก
-   - Packages ที่ต้องติดตั้ง
-   - Environment Variables / Secrets ที่ต้องตั้งค่า
-
-2. Code หลักพร้อมรัน:
-   - ไฟล์หลัก
-   - Modules/Functions สำคัญ
-   - Config files ที่จำเป็น
-
-3. วิธีทดสอบว่ารันถูกต้องบน Replit
-
-4. Tips สำหรับ Share หรือ Deploy จาก Replit` }
+ระบุ Claude Code commands และ prompts ที่ควรใช้เพื่อทำงานนี้ให้มีประสิทธิภาพ` }
         ]
       }
     ]
@@ -1878,7 +1820,90 @@ Participants: [รายชื่อ roles และ names]
 4. UAT Completion & Sign-off Request
 5. Go-Live Announcement (หลัง UAT ผ่าน)
 
-Tone: เป็นทางการแต่เป็นมิตร รวม placeholders สำหรับ dynamic content` }
+Tone: เป็นทางการแต่เป็นมิตร รวม placeholders สำหรับ dynamic content` },
+          { name:'Canva AI', emoji:'🎨', badge:'Design', desc:'สร้าง UAT Kickoff Slide Deck มืออาชีพ ให้ผู้ทดสอบเข้าใจเป้าหมายและขั้นตอนตั้งแต่ต้น',
+            url:'https://canva.com',
+            available:true,
+            prompt:`Help me create a professional UAT Kickoff Presentation in Canva.
+
+Project: [ชื่อโปรเจกต์]
+System: [ชื่อระบบที่ทดสอบ เช่น Cloud POS / SAP ERP / New CRM]
+UAT Period: [วันเริ่ม – วันสิ้นสุด]
+Go-Live Date: [วันที่ Go-Live]
+UAT Participants: [roles เช่น Finance Team, Store Ops, IT Support]
+
+Brand:
+- Primary Color: [สีหลักขององค์กร]
+- Logo: [will upload separately]
+- Style: [corporate / modern / minimal]
+
+Slide Deck Structure (~12–15 slides):
+
+1. Title Slide — Project name, UAT Kickoff, date
+2. Agenda — What we'll cover today
+3. Why UAT Matters — Business context and importance of UAT sign-off
+4. UAT Objectives — What we need to validate (scope & success criteria)
+5. UAT Scope — In-scope modules / processes, out-of-scope items
+6. UAT Timeline — Key dates: start, end, defect freeze, sign-off deadline
+7. Participant Roles & Responsibilities — Who tests what, who approves
+8. Test Environment & Access — URL, login instructions, test data guide
+9. How to Log Defects — Step-by-step defect reporting process (tool/form)
+10. Defect Severity Levels — Critical / High / Medium / Low with examples
+11. Daily UAT Routine — Check-in process, status update cadence
+12. Escalation Path — Who to contact for blockers, questions, critical issues
+13. UAT Sign-off Criteria — What "PASS" looks like, sign-off process
+14. Q&A / Next Steps
+
+For each slide suggest:
+- Headline (1 key message)
+- Content structure (table / icon grid / timeline / bullet)
+- Visual style recommendation
+- Speaker notes for UAT coordinator
+
+Also provide:
+- Font pairing for headers and body
+- Template search keywords to use in Canva
+- Icon style (outline / filled)`,
+            promptTH:`ช่วยสร้าง UAT Kickoff Presentation มืออาชีพใน Canva
+
+Project: [ชื่อโปรเจกต์]
+System: [ชื่อระบบที่ทดสอบ เช่น Cloud POS / SAP ERP / New CRM]
+ช่วง UAT: [วันเริ่ม – วันสิ้นสุด]
+วัน Go-Live: [วันที่]
+ผู้เข้าร่วม UAT: [roles เช่น ทีม Finance, Store Ops, IT Support]
+
+Brand:
+- สีหลัก: [สีหลักขององค์กร]
+- Logo: [จะอัปโหลดแยก]
+- Style: [corporate / modern / minimal]
+
+โครงสร้าง Slide Deck (~12–15 slides):
+
+1. หน้าปก — ชื่อโปรเจกต์, UAT Kickoff, วันที่
+2. วาระการประชุม — หัวข้อที่จะพูดถึงวันนี้
+3. ทำไม UAT ถึงสำคัญ — Context ทางธุรกิจและความสำคัญของ UAT Sign-off
+4. เป้าหมาย UAT — สิ่งที่ต้อง Validate (Scope & Success Criteria)
+5. ขอบเขต UAT — Modules/Process ที่อยู่ใน/นอก Scope
+6. Timeline UAT — วันสำคัญ: เริ่ม, สิ้นสุด, Defect Freeze, Sign-off Deadline
+7. บทบาทและความรับผิดชอบ — ใครทดสอบอะไร ใครอนุมัติ
+8. Environment & การเข้าถึงระบบ — URL, วิธี Login, ข้อมูลทดสอบ
+9. วิธีบันทึก Defect — ขั้นตอนการรายงานข้อบกพร่อง (Tool/Form)
+10. ระดับความรุนแรงของ Defect — Critical / High / Medium / Low พร้อมตัวอย่าง
+11. Daily UAT Routine — กระบวนการ Check-in และการ Update สถานะ
+12. Escalation Path — ติดต่อใครเมื่อติดขัด, มีคำถาม, หรือพบปัญหาร้ายแรง
+13. เกณฑ์ UAT Sign-off — "PASS" หน้าตาเป็นอย่างไร, กระบวนการ Sign-off
+14. Q&A / Next Steps
+
+สำหรับแต่ละ Slide ระบุ:
+- Headline (Key Message 1 ประโยค)
+- โครงสร้าง Content (ตาราง / Icon Grid / Timeline / Bullet)
+- คำแนะนำ Visual style
+- Speaker Notes สำหรับ UAT Coordinator
+
+รวมถึง:
+- Font pairing สำหรับ Header และ Body
+- คีย์เวิร์ดค้นหา Template ใน Canva
+- Style ไอคอน (outline / filled)` }
         ]
       },
       {
@@ -2017,7 +2042,82 @@ User Groups: [รายชื่อ]
 6. 🎫 วิธีขอความช่วยเหลือ (ช่องทาง support, กระบวนการ ticket)
 7. 📣 Release Notes (ประวัติเวอร์ชัน)
 
-แนะนำ database properties, relations, และ views ที่เหมาะสมแต่ละส่วน` }
+แนะนำ database properties, relations, และ views ที่เหมาะสมแต่ละส่วน` },
+          { name:'Canva AI', emoji:'🎨', badge:'Design', desc:'สร้าง Training Slide Deck มืออาชีพพร้อม content ครบสำหรับ end users',
+            url:'https://canva.com',
+            available:true,
+            prompt:`Help me create a professional Training Slide Deck in Canva for a system go-live.
+
+System Name: [ชื่อระบบ เช่น Cloud POS / SAP ERP / New CRM]
+Target Audience: [กลุ่มผู้ใช้ เช่น Store Staff, Finance Team, Supervisors]
+Training Duration: [เช่น 2-hour session]
+Go-Live Date: [วันที่ Go-Live]
+
+Brand:
+- Primary Color: [สีหลักขององค์กร]
+- Logo: [will upload separately]
+- Style: [corporate / modern / minimal]
+
+Slide Deck Structure (suggest ~15–20 slides):
+
+1. Title Slide — System name, training date, audience
+2. Agenda — Topics covered today
+3. Why We're Changing — Business reason for the new system
+4. What's Different — Old vs New comparison (table format)
+5. System Overview — Key modules and how they connect
+6. Demo Walkthrough — Step-by-step screenshots of core flows
+   (repeat per major workflow: Login, Main Task, Reports)
+7. Do's and Don'ts — Common mistakes to avoid
+8. Where to Get Help — Support contacts, help desk, FAQs
+9. Hands-On Practice Guide — Exercises for participants
+10. Q&A / Key Takeaways
+
+For each slide suggest:
+- Headline (1 sentence key message)
+- Content structure (table / icon grid / screenshot placeholder / bullet)
+- Visual style recommendation
+- Speaker notes for trainer
+
+Also provide:
+- Font pairing for headers and body
+- Template search keywords to use in Canva
+- Icon style (outline / filled)`,
+            promptTH:`ช่วยสร้าง Training Slide Deck มืออาชีพใน Canva สำหรับ Go-Live
+
+ชื่อระบบ: [เช่น Cloud POS / SAP ERP / New CRM]
+กลุ่มเป้าหมาย: [เช่น พนักงานหน้าร้าน, ทีม Finance, Supervisors]
+ระยะเวลา Training: [เช่น 2 ชั่วโมง]
+วัน Go-Live: [วันที่]
+
+Brand:
+- สีหลัก: [สีหลักขององค์กร]
+- Logo: [จะอัปโหลดแยก]
+- Style: [corporate / modern / minimal]
+
+โครงสร้าง Slide Deck (~15–20 slides):
+
+1. หน้าปก — ชื่อระบบ, วันที่อบรม, กลุ่มผู้เข้าร่วม
+2. วาระการอบรม — หัวข้อที่จะเรียนรู้วันนี้
+3. ทำไมต้องเปลี่ยน — เหตุผลทางธุรกิจในการเปลี่ยนระบบ
+4. อะไรที่เปลี่ยนไป — เปรียบเทียบ ระบบเก่า vs ใหม่ (ตาราง)
+5. ภาพรวมระบบ — Modules หลักและการเชื่อมต่อ
+6. Demo Walkthrough — ขั้นตอน Core Flows พร้อม Screenshot
+   (ทำซ้ำต่อ workflow หลัก: Login, งานหลัก, Reports)
+7. สิ่งที่ควรทำ/ไม่ควรทำ — ข้อผิดพลาดที่พบบ่อย
+8. ขอความช่วยเหลือได้ที่ไหน — ช่องทาง Support, Help Desk, FAQs
+9. แบบฝึกหัด Hands-On — Exercise สำหรับผู้เข้าร่วม
+10. Q&A / สรุปสิ่งที่ได้เรียนรู้
+
+สำหรับแต่ละ Slide ระบุ:
+- Headline (Key Message 1 ประโยค)
+- โครงสร้าง Content (ตาราง / Icon Grid / Screenshot placeholder / Bullet)
+- คำแนะนำ Visual style
+- Speaker Notes สำหรับ Trainer
+
+รวมถึง:
+- Font pairing สำหรับ Header และ Body
+- คีย์เวิร์ดค้นหา Template ใน Canva
+- Style ไอคอน (outline / filled)` }
         ]
       },
       {
@@ -2149,66 +2249,94 @@ Target Schema:
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง cutover plan พร้อม owner, dependencies และ fallback decisions',
             url:'https://ginii-lab.scg.com/',
             available:true,
-            prompt:`Create a detailed minute-by-minute cutover plan for go-live.
+            prompt:`[EN] SYSTEM PROMPT
+You are a Senior IT Project Manager specializing in Go-Live Planning.
+Project: [FILL: System/project name e.g. "Cloud POS System" or "SAP ERP"]
+Respond in clear English using appropriate technical terms.
+Use tables, bullets, and numbered lists where appropriate.
+At the end of the Cutover Plan, always summarize a JSON with fields:
+cutover_window, tasks[], rollback_criteria
 
-System: [ชื่อระบบ]
-Go-Live Date & Time: [date and time]
-Cutover Window: [e.g. Friday 10PM — Saturday 6AM]
-Rollback Deadline: [last possible time to abort]
-Team Members: [list name and role]
+[EN] USER PROMPT
+## PROJECT CONTEXT
+System: [Name of the system going live e.g. Cloud POS / SAP ERP / New CRM]
+Migration: [From what → to what e.g. Legacy System → Cloud Platform]
+Scope: [Number of users / sites / modules affected]
+Go-Live Target: [Date and time window e.g. June 15, 2025 02:00–06:00]
+Teams involved: [e.g. IT Lead, Business Owner, Network Team, Finance]
 
-Deliverables:
+---
+Please create a comprehensive Cutover Plan covering:
 
-1. Cutover Runbook (T-minus timeline table)
-   Columns: Time | Task | Owner | Duration | Depends On | Status | Notes
-   Cover: pre-cutover freeze → data migration → system switch → smoke test → go/no-go
+1. Cutover Window Timeline
+   - Show minute-by-minute throughout the window
+   - Highlight key checkpoints at each stage
 
-2. Go/No-Go Decision Checkpoints
-   - Criteria to proceed at each gate
-   - Who has authority to call go or no-go
+2. Task List with Owners
+   - For each task include: task name, start time, end time, owner, status
+   - Group by workstream (IT / Ops / Business / Network)
 
-3. Rollback Plan
-   - Trigger criteria (when to rollback — specific thresholds)
-   - Rollback steps with owner and time estimate per step
-   - Communication script if rollback occurs
+3. Dependency Map
+   - Which tasks must complete before others
+   - Identify the Critical Path
 
-4. Communication Plan
-   - Who to notify at each milestone (internal + external)
-   - Status update schedule during cutover night
-   - Escalation contacts
+4. Rollback Decision Criteria
+   - Clear trigger conditions (metric-based e.g. error rate > X%)
+   - Step-by-step rollback procedure
+   - Decision point time and who is the decision maker
 
-5. Hypercare Schedule (first 48 hours post go-live)
-   - On-call roster with shifts
-   - Issue triage process`,
-            promptTH:`สร้าง Cutover Plan โดยละเอียดแบบ minute-by-minute
+5. Communication Plan
+   - Who notifies whom, when, and through which channel
 
-System: [ชื่อระบบ]
-Go-Live Date & Time: [วันที่และเวลา]
-Cutover Window: [เช่น ศุกร์ 22:00 — เสาร์ 06:00]
-Rollback Deadline: [เวลาสุดท้ายที่ยกเลิกได้]
-Team Members: [รายชื่อและ role]
+---
+Summarize at the end as JSON with fields:
+step, project, cutover_window, tasks[], rollback_criteria[], decision_point
 
-ส่งมอบ:
+NOTE: JSON output is required — it will be passed as context to Step 2.`,
+            promptTH:`[TH] SYSTEM PROMPT
+คุณเป็น Senior IT Project Manager ที่เชี่ยวชาญ Go-Live Planning
+โปรเจกต์: [FILL: ชื่อระบบ/โปรเจค เช่น "ระบบ POS Cloud" หรือ "ERP SAP"]
+ตอบเป็นภาษาไทยผสม Technical Terms
+ใช้ตาราง/bullet/numbered list ตามความเหมาะสม
+เมื่อสร้าง Cutover Plan ให้สรุป JSON ท้ายสุดด้วยฟิลด์:
+cutover_window, tasks[], rollback_criteria
 
-1. Cutover Runbook (ตาราง T-minus timeline)
-   Columns: เวลา | Task | เจ้าของ | ระยะเวลา | ขึ้นอยู่กับ | สถานะ | หมายเหตุ
-   ครอบคลุม: Pre-cutover Freeze → Data Migration → Switch → Smoke Test → Go/No-Go
+[TH] USER PROMPT
+## PROJECT CONTEXT
+ระบบ: [ชื่อระบบที่จะ Go-Live เช่น Cloud POS / SAP ERP / New CRM]
+Migration: [จากอะไร → ไปอะไร เช่น Legacy System → Cloud Platform]
+Scope: [จำนวน users / sites / modules ที่ได้รับผล]
+Go-Live Target: [วันที่และช่วงเวลา เช่น 15 มิ.ย. 2025 เวลา 02:00–06:00 น.]
+ทีมที่เกี่ยวข้อง: [เช่น IT Lead, Business Owner, Network Team, Finance]
 
-2. จุด Go/No-Go Decision
-   - เกณฑ์สำหรับดำเนินการต่อ
-   - ใครมีอำนาจตัดสินใจ
+---
+ช่วยสร้าง Cutover Plan ที่ครอบคลุม:
 
-3. Rollback Plan
-   - เกณฑ์ที่ต้อง Rollback (threshold ที่ชัดเจน)
-   - ขั้นตอน Rollback พร้อมเจ้าของ
-   - Script การสื่อสารถ้า Rollback
+1. Cutover Window Timeline
+   - แสดงแบบ minute-by-minute ตลอด window
+   - ระบุ checkpoint สำคัญทุกช่วง
 
-4. Communication Plan
-   - ใครรับแจ้งที่แต่ละ Milestone
-   - ตารางอัปเดตระหว่าง Cutover คืน
-   - ผู้ติดต่อ Escalation
+2. Task List พร้อม Owner
+   - แต่ละ task ระบุ: ชื่องาน, เวลาเริ่ม, เวลาสิ้นสุด, Owner, สถานะ
+   - จัดกลุ่มตาม workstream (IT / Ops / Business / Network)
 
-5. Hypercare Schedule (48 ชั่วโมงแรกหลัง Go-Live)` },
+3. Dependency Map
+   - Task ไหนต้องเสร็จก่อน Task ไหน
+   - ระบุ Critical Path
+
+4. Rollback Decision Criteria
+   - Trigger conditions ที่ชัดเจน (metric-based เช่น error rate > X%)
+   - Rollback procedure step-by-step
+   - Decision point เวลาอะไร ใครเป็น decision maker
+
+5. Communication Plan
+   - ใครต้องแจ้งอะไร เมื่อไหร่ ช่องทางไหน
+
+---
+สรุปท้ายสุดเป็น JSON มีฟิลด์:
+step, project, cutover_window, tasks[], rollback_criteria[], decision_point
+
+NOTE: JSON output is required — จะใช้เป็น context ใน Step 2` },
           { name:'Notion AI', emoji:'📝', badge:'Workspace', desc:'ทำ cutover checklist page ที่ทุกคนเห็นสถานะเดียวกัน',
             url:'https://notion.so',
             available:false,
@@ -2271,101 +2399,128 @@ Team Members: [รายชื่อและ roles]
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง go-live readiness checklist ครอบ requirement/data/UAT/training',
             url:'https://ginii-lab.scg.com/',
             available:true,
-            prompt:`Create a comprehensive Go-Live Readiness Review checklist covering all dimensions.
+            prompt:`[EN] SYSTEM PROMPT
+You are a QA Lead / Release Manager for a Go-Live project.
+You receive context from the Cutover Plan (Step 01) to assess readiness.
+Evaluate across: UAT, Data Migration, User Training, Infrastructure, Security.
+Provide a Go/No-Go recommendation with Risk Level (High/Medium/Low) and Mitigations.
+Respond in clear English using appropriate technical terms.
 
-Project: [ชื่อโปรเจกต์]
-Go-Live Date: [date]
-System Type: [ERP / Web App / Mobile / Integration]
+[EN] USER PROMPT
+## CONTEXT FROM STEP 01 — CUTOVER PLAN
+The information below has already been confirmed. Do not ask again — use it as background context:
 
-Generate a readiness checklist organized by track:
+[Paste JSON from Step 1 here]
 
-## 1. Functional Readiness
-- All must-have requirements delivered and tested
-- Outstanding defects status (zero critical/high open)
-- UAT signed off by all stakeholder groups
-- Deferred items documented and accepted
+## END CONTEXT
 
-## 2. Data Readiness
-- Data migration completed and validated
-- Record count reconciliation (source vs target)
-- Data quality spot-check passed
-- Master data verified (users, org structure, config)
+---
+We are now at Step 02 — Readiness Review.
+Please assess readiness for Go-Live based on the items below:
 
-## 3. Technical & Infrastructure Readiness
-- Production environment provisioned and tested
-- Performance test results meet SLA
-- Security scan completed (no critical findings)
-- Backup and recovery verified
-- SSL, DNS, load balancer configured
+## Current Readiness Status
 
-## 4. Integration Readiness
-- All external system integrations tested end-to-end
-- API keys and credentials configured in production
-- Error handling and retry logic verified
+**UAT / Testing**
+- Status: [e.g. X% passed out of Y test cases]
+- Outstanding issues: [list any remaining items]
 
-## 5. Training & User Readiness
-- Training completion rate by role (target %)
-- User accounts created and access verified
-- Quick reference guides distributed
-- Support contacts communicated to users
+**Data Migration**
+- Status: [e.g. X% migrated out of Y total records]
+- Data not yet migrated: [specify]
 
-## 6. Support Readiness
-- Hypercare team rostered and briefed
-- Help desk trained and scripts ready
-- Escalation path defined and tested
-- Monitoring dashboards live
+**User Training**
+- Status: [e.g. X out of Y users trained]
+- Groups not yet complete: [specify]
 
-## 7. Communication Readiness
-- Go-live announcement prepared
-- Stakeholder notification list ready
-- Rollback communication template prepared
+**Infrastructure / Environment**
+- Status: [e.g. Production ready / known gaps]
+- Known issues: [specify]
 
-For each item: Status column (✅ Done / ⚠️ At Risk / ❌ Not Done), Owner, and Notes.`,
-            promptTH:`สร้าง Go-Live Readiness Review Checklist ครอบคลุมทุกมิติ
+**Security / Compliance**
+- Status: [e.g. Pen test passed / SSL cert renewed / Compliance checklist done]
 
-Project: [ชื่อโปรเจกต์]
-Go-Live Date: [วันที่]
-System Type: [ERP / Web App / Mobile / Integration]
+---
+Please provide:
 
-สร้าง Checklist จัดตาม Track:
+1. Go / No-Go Recommendation
+   - Clearly state: GO / NO-GO / GO with conditions
+   - Include reasoning and supporting evidence
 
-## 1. Functional Readiness
-- Requirements ที่ต้องมีทั้งหมดส่งมอบและทดสอบแล้ว
-- สถานะ Defects ที่ยังค้างอยู่ (ไม่มี Critical/High ค้าง)
-- UAT Sign-off จากทุก Stakeholder groups
+2. Risk Matrix
+   - All items above with Risk Level (H/M/L) and Mitigation actions
 
-## 2. Data Readiness
-- Data Migration เสร็จและ Validate แล้ว
-- การนับ Record (Source vs Target)
-- Spot-check คุณภาพข้อมูลผ่าน
-- Master Data ยืนยันแล้ว (Users, โครงสร้างองค์กร, Config)
+3. Blocker List
+   - Items that must be resolved before Go-Live, ordered by priority
 
-## 3. Technical & Infrastructure Readiness
-- Production Environment พร้อม
-- ผล Performance Test ผ่าน SLA
-- Security Scan เสร็จ (ไม่มี Critical findings)
-- Backup และ Recovery ยืนยันแล้ว
+4. Contingency Plan
+   - What to do if blockers are not resolved in time
 
-## 4. Integration Readiness
-- Integration ทุกจุดทดสอบ End-to-End แล้ว
-- API Keys และ Credentials ตั้งค่าใน Production
-- Error Handling และ Retry Logic ยืนยันแล้ว
+---
+Summarize at the end as JSON with fields:
+step, decision, risk_level, blockers[], conditions[], approved_by
 
-## 5. Training & User Readiness
-- อัตราการเข้า Training ต่อ role (เป้าหมาย %)
-- User Accounts สร้างและยืนยัน Access
-- Quick Reference Guides แจกจ่ายแล้ว
+NOTE: JSON output is required — it will be passed as context to Step 3.`,
+            promptTH:`[TH] SYSTEM PROMPT
+คุณเป็น QA Lead / Release Manager สำหรับโปรเจกต์ Go-Live
+รับ Context จาก Cutover Plan (Step 01) มาวิเคราะห์ความพร้อม
+ประเมินครอบคลุม: UAT, Data Migration, User Training, Infrastructure, Security
+สรุป Go/No-Go พร้อม Risk Level (High/Medium/Low) และ Mitigation
+ตอบเป็นภาษาไทยผสม Technical Terms
 
-## 6. Support Readiness
-- Hypercare Team พร้อม
-- Help Desk ฝึกอบรมแล้ว
-- Escalation Path กำหนดชัดเจน
+[TH] USER PROMPT
+## CONTEXT FROM STEP 01 — CUTOVER PLAN
+ข้อมูลด้านล่างนี้ถูก confirm แล้ว อย่าถามซ้ำ ให้ใช้เป็น background:
 
-## 7. Communication Readiness
-- ประกาศ Go-Live เตรียมพร้อม
-- รายชื่อ Stakeholder พร้อมแจ้ง
+[วาง JSON จาก Step 1 ตรงนี้]
 
-แต่ละรายการ: คอลัมน์สถานะ (✅ Done / ⚠️ At Risk / ❌ Not Done), เจ้าของ, หมายเหตุ` },
+## END CONTEXT
+
+---
+ตอนนี้อยู่ที่ Step 02 — Readiness Review
+ประเมินความพร้อมก่อน Go-Live ตามรายการด้านล่าง:
+
+## สถานะความพร้อมปัจจุบัน
+
+**UAT / Testing**
+- สถานะ: [เช่น ผ่าน X% จาก Y test cases]
+- Outstanding issues: [รายการที่ยังค้างอยู่]
+
+**Data Migration**
+- สถานะ: [เช่น migrate แล้ว X% จาก Y records]
+- Data ที่ยังไม่ migrate: [ระบุ]
+
+**User Training**
+- สถานะ: [เช่น trained แล้ว X จาก Y คน]
+- กลุ่มที่ยังไม่ครบ: [ระบุ]
+
+**Infrastructure / Environment**
+- สถานะ: [เช่น Production ready / มี gap อะไร]
+- Known issues: [ระบุ]
+
+**Security / Compliance**
+- สถานะ: [เช่น Pen test ผ่าน / SSL cert / Compliance checklist]
+
+---
+ช่วยสร้าง:
+
+1. Go / No-Go Recommendation
+   - ระบุชัดเจน: GO / NO-GO / GO with conditions
+   - เหตุผลและ evidence รองรับ
+
+2. Risk Matrix
+   - ทุก item ข้างต้น พร้อม Risk Level (H/M/L) และ Mitigation
+
+3. Blocker List
+   - สิ่งที่ต้องแก้ก่อน Go-Live เรียงตามลำดับความสำคัญ
+
+4. Contingency Plan
+   - ถ้า blocker ไม่ได้รับการแก้ทันเวลา ทำอย่างไร
+
+---
+สรุปท้ายสุดเป็น JSON มีฟิลด์:
+step, decision, risk_level, blockers[], conditions[], approved_by
+
+NOTE: JSON output is required — จะใช้เป็น context ใน Step 3` },
           { name:'Miro', emoji:'🗺️', badge:'Workshop', desc:'ใช้ทำ readiness review board และระดมปัญหาสุดท้ายก่อน cutover',
             url:'https://miro.com',
             available:false,
@@ -2434,68 +2589,124 @@ Team: [BA, Dev, QA, DevOps, Business, Support]
           { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง go-live day playbook และ smoke test checklist',
             url:'https://ginii-lab.scg.com/',
             available:true,
-            prompt:`Create a Go-Live Day execution playbook.
+            prompt:`[EN] SYSTEM PROMPT
+You are a Site Reliability Engineer (SRE) overseeing Go-Live Execution.
+You receive context from the Cutover Plan and Readiness Report (Steps 01–02).
+Provide actionable, real-time, and concise guidance.
+Use numbered steps and clear checkpoints throughout.
+Flag issues using [P1] [P2] [P3] based on severity.
+Respond in clear English using appropriate technical terms.
 
-System: [ชื่อระบบ]
-Go-Live Date: [date]
-Key Contacts: [names and roles]
+[EN] USER PROMPT
+## CONTEXT FROM STEP 01 — CUTOVER PLAN
+[Paste JSON from Step 1 here]
+## END STEP 01
 
-Provide:
+## CONTEXT FROM STEP 02 — READINESS REVIEW
+[Paste JSON from Step 2 here]
+## END STEP 02
 
-1. Go-Live Day Hour-by-Hour Schedule
-   - Pre-opening checks (before users arrive)
-   - User access window opens
-   - First transaction verification
-   - Ongoing monitoring schedule
+---
+We are now at Step 03 — Go-Live Execution.
+Current time: [e.g. 01:45 on date ...]
 
-2. Smoke Test Checklist (run immediately after go-live)
-   - Top 10 critical paths to verify (specific steps + expected result)
-   - Who runs each test
-   - Pass/fail criteria
-   - What to do if a smoke test fails
+## Pre-Cutover Status
+- Conditions from Step 02 that have been resolved: [specify]
+- Conditions still pending or requiring monitoring: [specify or enter "None"]
+- Teams on standby: [e.g. IT War Room, Store Ops, Network]
+- Current environment status: [e.g. DB sync 100%, All services healthy]
 
-3. First Hour Monitoring Checklist
-   - System health metrics to watch
-   - Business KPIs to verify (e.g. first order created, first login success rate)
-   - Error rate threshold that triggers escalation
+---
+Please create:
 
-4. User Communication Templates
-   - "System is live" announcement
-   - "We are experiencing issues" holding message
-   - "Issue resolved" update
+1. Execution Runbook
+   - Minute-by-minute throughout the cutover window
+   - For each task include: time, action, owner, expected result, fallback
 
-5. End-of-Day Status Report template for stakeholders`,
-            promptTH:`สร้าง Go-Live Day Execution Playbook
+2. Smoke Test Checklist
+   - 10–15 key test items to run after cutover
+   - Specify clear pass criteria for each item
 
-System: [ชื่อระบบ]
-Go-Live Date: [วันที่]
-Key Contacts: [ชื่อและ roles]
+3. Traffic / Service Switching Procedure
+   - Steps to switch from Old → New system
+   - Verification steps after the switch
 
-ระบุ:
+4. Rollback Trigger & Procedure
+   - Use rollback_criteria from Step 01 as baseline
+   - Add real-time indicators to monitor
+   - Full procedure if rollback is required
 
-1. ตารางรายชั่วโมง Go-Live Day
-   - การตรวจสอบก่อนเปิดให้ผู้ใช้
-   - Window เปิด User Access
-   - การยืนยัน Transaction แรก
-   - ตารางการ Monitor ต่อเนื่อง
+5. War Room & Escalation
+   - Contact list by P1/P2/P3 severity
+   - Decision maker for each issue type
 
-2. Smoke Test Checklist (รันทันทีหลัง Go-Live)
-   - 10 Critical Paths สำคัญ (steps เฉพาะ + ผลลัพธ์ที่คาดหวัง)
-   - ใครรันแต่ละ test
-   - เกณฑ์ผ่าน/ไม่ผ่าน
-   - ขั้นตอนถ้า Smoke Test ไม่ผ่าน
+---
+Summarize at the end as a readable Execution Summary including:
+- What was completed
+- Issues encountered and how they were resolved
+- Go-Live Status: SUCCESS / ROLLBACK
+- Next actions after cutover is complete
 
-3. First Hour Monitoring Checklist
-   - Metrics ที่ต้องดู
-   - KPIs ทางธุรกิจที่ต้องยืนยัน
-   - Error Rate Threshold ที่ต้อง Escalate
+NOTE: No JSON output needed — this is the final step.`,
+            promptTH:`[TH] SYSTEM PROMPT
+คุณเป็น Site Reliability Engineer (SRE) ที่ดูแล Go-Live Execution
+รับ Context จาก Cutover Plan และ Readiness Report (Step 01–02)
+ให้ข้อมูล actionable, real-time, concise
+ใช้ numbered steps และ checkpoint ที่ชัดเจน
+Flag ปัญหาด้วย [P1] [P2] [P3] ตามความรุนแรง
+ตอบเป็นภาษาไทยผสม Technical Terms
 
-4. User Communication Templates
-   - "ระบบเปิดใช้งานแล้ว"
-   - "กำลังพบปัญหา" (holding message)
-   - "ปัญหาได้รับการแก้ไขแล้ว"
+[TH] USER PROMPT
+## CONTEXT FROM STEP 01 — CUTOVER PLAN
+[วาง JSON จาก Step 1 ตรงนี้]
+## END STEP 01
 
-5. Template รายงานสถานะปลายวันสำหรับ Stakeholders` },
+## CONTEXT FROM STEP 02 — READINESS REVIEW
+[วาง JSON จาก Step 2 ตรงนี้]
+## END STEP 02
+
+---
+ตอนนี้อยู่ที่ Step 03 — Go-Live Execution
+เวลาปัจจุบัน: [เช่น 01:45 น. วันที่ ...]
+
+## สถานะก่อน Cutover เริ่ม
+- Conditions จาก Step 02 ที่แก้เรียบร้อยแล้ว: [ระบุ]
+- Conditions ที่ยังค้างหรือต้องติดตาม: [ระบุ หรือใส่ "ไม่มี"]
+- Team ที่ standby: [เช่น IT War Room, Store Ops, Network]
+- Environment ล่าสุด: [เช่น DB sync 100%, All services healthy]
+
+---
+ช่วยสร้าง:
+
+1. Execution Runbook
+   - Minute-by-minute ตลอด cutover window
+   - แต่ละ task: เวลา, action, owner, expected result, fallback
+
+2. Smoke Test Checklist
+   - รายการทดสอบหลัก 10–15 รายการหลัง cutover
+   - ระบุ pass criteria ที่ชัดเจนแต่ละรายการ
+
+3. Traffic / Service Switching Procedure
+   - ขั้นตอน switch จาก Old → New system
+   - Verification steps หลัง switch
+
+4. Rollback Trigger & Procedure
+   - ใช้ rollback_criteria จาก Step 01 เป็น baseline
+   - เพิ่ม real-time indicators ที่ต้องมอนิเตอร์
+   - Procedure ถ้าต้อง rollback จริง
+
+5. War Room & Escalation
+   - Contact list ตาม P1/P2/P3
+   - Decision maker สำหรับแต่ละประเภทปัญหา
+
+---
+สรุปท้ายสุดเป็น Execution Summary ที่อ่านง่าย มี:
+- สิ่งที่ทำเสร็จแล้ว
+- ปัญหาที่เจอและวิธีแก้
+- Go-Live Status: SUCCESS / ROLLBACK
+- Next actions หลัง cutover เสร็จ
+
+NOTE: ไม่ต้องมี JSON output — นี่คือ Step สุดท้าย` },
           { name:'Datadog AI', emoji:'📊', badge:'Monitoring', desc:'ตั้งค่า hypercare monitoring dashboard สำหรับ go-live',
             url:'https://datadoghq.com',
             available:false,
@@ -2551,261 +2762,6 @@ SLA: Uptime 99.9%, P95 < [X]ms, Error Rate < [X]%
 5. Go-Live Incident Response Runbook (5 failure scenarios หลัก)` }
         ]
       },
-      {
-        title:'Hypercare & Post-Launch Support',
-        detail:'สนับสนุน users อย่างเข้มข้นช่วง 2-4 สัปดาห์แรก และ resolve ปัญหาที่เกิดขึ้น',
-        tools:[
-          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง hypercare support plan และ issue triage process',
-            url:'https://ginii-lab.scg.com/',
-            available:true,
-            prompt:`Create a Hypercare Support Plan for the first 4 weeks post go-live.
-
-System: [ชื่อระบบ]
-User Base: [number and type of users]
-Support Team: [members and availability]
-Business Hours: [e.g. Mon-Fri 8AM-6PM]
-
-Provide:
-
-1. Hypercare Phases
-   - Week 1: Intensive (on-site/dedicated support hours)
-   - Week 2: Active (rapid response SLA)
-   - Week 3-4: Transition (normal support handoff)
-
-2. Issue Triage & Escalation Process
-   - Severity classification (Critical / High / Medium / Low) with examples
-   - Response SLA per severity
-   - Escalation path (L1 → L2 → Dev team)
-   - When to invoke rollback vs workaround
-
-3. Daily Hypercare Standup Agenda
-   - Issues raised yesterday
-   - Issues resolved
-   - Issues open + owner + ETA
-   - Risks for today
-
-4. Known Issues & Workaround Log template
-
-5. Hypercare Exit Criteria
-   - Metrics that signal readiness to exit hypercare
-   - Sign-off process`,
-            promptTH:`สร้าง Hypercare Support Plan สำหรับ 4 สัปดาห์แรกหลัง Go-Live
-
-System: [ชื่อระบบ]
-User Base: [จำนวนและประเภทผู้ใช้]
-Support Team: [สมาชิกและความพร้อม]
-Business Hours: [เช่น จันทร์-ศุกร์ 08:00-18:00]
-
-ระบุ:
-
-1. Hypercare Phases
-   - สัปดาห์ 1: เข้มข้น (Support ประจำสถานที่/ชั่วโมงเฉพาะ)
-   - สัปดาห์ 2: Active (SLA ตอบสนองเร็ว)
-   - สัปดาห์ 3-4: Transition (ส่งมอบสู่ Support ปกติ)
-
-2. กระบวนการ Issue Triage & Escalation
-   - การจำแนกความรุนแรง (Critical/High/Medium/Low) พร้อมตัวอย่าง
-   - Response SLA ต่อระดับ
-   - เส้นทาง Escalation (L1 → L2 → Dev Team)
-   - เมื่อใดควร Rollback vs Workaround
-
-3. Agenda Daily Hypercare Standup
-   - ปัญหาที่แจ้งเมื่อวาน
-   - ปัญหาที่แก้ไขแล้ว
-   - ปัญหาที่ยังค้าง + เจ้าของ + ETA
-   - ความเสี่ยงของวันนี้
-
-4. Template Known Issues & Workaround Log
-
-5. Hypercare Exit Criteria` },
-          { name:'Notion AI', emoji:'📝', badge:'Workspace', desc:'สร้าง post-launch issue tracker และ knowledge base',
-            url:'https://notion.so',
-            available:false,
-            prompt:`Create a Notion post-launch support hub for the hypercare period.
-
-Project: [ชื่อโปรเจกต์]
-Hypercare Period: [start → end date]
-
-Design the following pages:
-
-1. 🐛 Issue Tracker Database
-   - Properties: Issue ID, Title, Reporter, Date, Severity (Critical/High/Med/Low), Module, Status (New/In Progress/Resolved/Closed), Assignee, Root Cause, Resolution, Workaround Available
-   - Views: Kanban by Status, Table by Severity, Filtered by Module
-
-2. 📖 Workaround Library
-   - Issue description + interim workaround steps (for support team to share with users)
-
-3. 📊 Daily Status Dashboard
-   - Issues opened today / resolved today / total open by severity
-   - Link to monitoring dashboard
-
-4. 📣 User Communication Log
-   - What was communicated, when, to whom, by who
-
-5. 🏁 Hypercare Exit Checklist
-   - Criteria to transition to steady-state support
-
-Recommend Notion database properties, relations, and views for each section.`,
-            promptTH:`สร้าง Notion Post-Launch Support Hub สำหรับ Hypercare Period
-
-Project: [ชื่อโปรเจกต์]
-Hypercare Period: [วันเริ่ม → วันสิ้นสุด]
-
-ออกแบบ Pages ต่อไปนี้:
-
-1. 🐛 Issue Tracker Database
-   - Properties: Issue ID, ชื่อ, ผู้แจ้ง, วันที่, ความรุนแรง, Module, สถานะ, ผู้รับผิดชอบ, Root Cause, การแก้ไข, มี Workaround
-   - Views: Kanban ตามสถานะ, ตารางตามความรุนแรง, กรองตาม Module
-
-2. 📖 Workaround Library
-   - คำอธิบายปัญหา + ขั้นตอน Workaround ชั่วคราว
-
-3. 📊 Daily Status Dashboard
-   - ปัญหาที่เปิดวันนี้ / แก้ไขวันนี้ / ทั้งหมดที่ค้างตามความรุนแรง
-
-4. 📣 User Communication Log
-   - สิ่งที่สื่อสาร, เมื่อไหร่, ถึงใคร, โดยใคร
-
-5. 🏁 Hypercare Exit Checklist
-   - เกณฑ์ Transition ไป Steady-state Support
-
-แนะนำ database properties, relations, และ views` }
-        ]
-      },
-      {
-        title:'Lessons Learned & Handover',
-        detail:'จัดทำ retrospective, ส่งมอบระบบให้ support team และ document ทุกอย่างสำหรับอนาคต',
-        tools:[
-          { name:'Claude', emoji:'✨', badge:'General AI', desc:'สร้าง project retrospective และ lessons learned document',
-            url:'https://ginii-lab.scg.com/',
-            available:true,
-            prompt:`Facilitate a project retrospective and create a Lessons Learned document.
-
-Project: [ชื่อโปรเจกต์]
-Duration: [start → end date]
-Team: [list roles]
-
-Generate:
-
-1. Retrospective Workshop Agenda (2-hour session)
-   - Check-in activity
-   - Timeline review (key events, milestones, incidents)
-   - What went well? (celebrate wins)
-   - What could be improved? (honest reflection)
-   - Action items for future projects
-   - Close and appreciation
-
-2. Lessons Learned Document Structure
-   - Project Overview & Outcomes vs Plan
-   - What Went Well (with specific examples)
-   - What Could Be Improved (with root cause and recommendation)
-   - Risks that materialized vs risks that didn't
-   - Recommendations for future similar projects
-   - Team recognition
-
-3. Project Closure Checklist
-   - All deliverables accepted
-   - Documentation handed over
-   - Access revoked / transferred
-   - Support contract / SLA in place
-   - Financial closure
-   - Team offboarded / reassigned
-
-4. Knowledge Transfer Checklist for support team
-   - System architecture overview
-   - Common issues and fixes
-   - Vendor contacts
-   - SLA and escalation procedures`,
-            promptTH:`จัดทำ Project Retrospective และสร้าง Lessons Learned Document
-
-Project: [ชื่อโปรเจกต์]
-Duration: [วันเริ่ม → วันสิ้นสุด]
-Team: [รายชื่อ roles]
-
-สร้าง:
-
-1. Workshop Agenda Retrospective (2 ชั่วโมง)
-   - Check-in activity
-   - ทบทวน Timeline (เหตุการณ์สำคัญ, Milestones, Incidents)
-   - สิ่งที่ทำได้ดี (เฉลิมฉลอง)
-   - สิ่งที่ควรปรับปรุง (สะท้อนอย่างตรงไปตรงมา)
-   - Action Items สำหรับโปรเจกต์ถัดไป
-   - ปิดและขอบคุณ
-
-2. โครงสร้าง Lessons Learned Document
-   - ภาพรวมโปรเจกต์ & ผลลัพธ์จริง vs แผน
-   - สิ่งที่ทำได้ดี (พร้อมตัวอย่างจริง)
-   - สิ่งที่ควรปรับปรุง (พร้อม Root Cause และคำแนะนำ)
-   - ความเสี่ยงที่เกิดขึ้นจริง vs ที่ไม่เกิด
-   - คำแนะนำสำหรับโปรเจกต์ที่คล้ายกันในอนาคต
-   - การยกย่องทีม
-
-3. Project Closure Checklist
-   - ส่งมอบทุก Deliverable แล้ว
-   - เอกสารส่งมอบแล้ว
-   - ยกเลิก/โอน Access แล้ว
-   - SLA/Support Contract พร้อม
-   - ปิดการเงิน
-   - Team ได้รับการ reassign
-
-4. Knowledge Transfer Checklist สำหรับ Support Team` },
-          { name:'Miro', emoji:'🗺️', badge:'Workshop', desc:'Retrospective board สำหรับ team workshop',
-            url:'https://miro.com',
-            available:false,
-            prompt:`Design a project retrospective board in Miro for a software go-live project team.
-
-Team Size: [number of people]
-Session Length: [e.g. 90 minutes]
-
-Create a Miro board with these sections:
-
-1. 📅 Project Timeline
-   - Horizontal timeline with sticky notes for key milestones, decisions, and incidents
-   - Color-coded: green = good moment, red = painful moment, blue = pivot/learning
-
-2. 🌟 What Went Well
-   - Sticky notes grouped by theme
-   - Dot voting to highlight top wins
-
-3. 💡 What Could Be Improved
-   - Sticky notes with: What happened → Why → What we'd do differently
-   - Group by theme (Process / Tech / People / Communication)
-
-4. 🎯 Action Items for Next Project
-   - Who | What | Category
-
-5. 🏆 Shoutouts & Recognition
-   - Anonymous appreciation wall for team members
-
-Include facilitation timing and instructions for each section.`,
-            promptTH:`ออกแบบ Project Retrospective Board ใน Miro สำหรับทีม Software Go-Live
-
-จำนวนทีม: [จำนวนคน]
-ระยะเวลา Session: [เช่น 90 นาที]
-
-สร้าง Miro Board ด้วยส่วนเหล่านี้:
-
-1. 📅 Project Timeline
-   - Timeline แนวนอนพร้อม Sticky Notes สำหรับ Milestones, การตัดสินใจ, และ Incidents
-   - สีตามประเภท: เขียว = ช่วงเวลาดี, แดง = ช่วงเจ็บปวด, น้ำเงิน = จุดเปลี่ยน/บทเรียน
-
-2. 🌟 สิ่งที่ทำได้ดี
-   - Sticky Notes จัดกลุ่มตาม Theme
-   - Dot voting ไฮไลต์ความสำเร็จ
-
-3. 💡 สิ่งที่ควรปรับปรุง
-   - Sticky Notes: สิ่งที่เกิดขึ้น → ทำไม → สิ่งที่จะทำต่างออกไป
-   - จัดกลุ่มตาม Theme (Process / Tech / People / Communication)
-
-4. 🎯 Action Items สำหรับโปรเจกต์ถัดไป
-   - ใคร | ทำอะไร | หมวดหมู่
-
-5. 🏆 Shoutouts & Recognition
-   - กำแพงชื่นชมแบบไม่ระบุชื่อสำหรับสมาชิกทีม
-
-รวมเวลา Facilitation และคำแนะนำแต่ละส่วน` }
-        ]
-      }
     ]
   }
 ];
